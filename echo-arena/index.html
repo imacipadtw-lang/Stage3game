@@ -208,6 +208,25 @@ h3{font-weight:900;font-size:1.05rem}
 .confetti{position:fixed;top:-10px;width:10px;height:14px;z-index:45;animation:confetti linear forwards;pointer-events:none}
 @keyframes confetti{to{transform:translateY(110vh) rotate(720deg)}}
 
+/* pass stamps & certificate */
+.muted{color:var(--ink2);font-weight:700;font-size:.9rem}
+.mode{position:relative}
+.stamp{display:inline-block;font-family:var(--font-display);color:#d62828;border:4px double #d62828;border-radius:10px;padding:2px 10px;letter-spacing:.12em;font-size:1.1rem;line-height:1.2;transform:rotate(-12deg);text-transform:uppercase;background:rgba(255,255,255,.65);pointer-events:none;white-space:nowrap}
+.stamp.big{font-size:2.6rem;padding:6px 22px;border-width:6px}
+.stamp.pop{animation:stampIn .55s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes stampIn{0%{transform:rotate(-30deg) scale(3);opacity:0}60%{transform:rotate(-12deg) scale(.92);opacity:1}100%{transform:rotate(-12deg) scale(1);opacity:1}}
+.mode .stamp{position:absolute;right:8px;top:8px;font-size:.95rem;padding:0 8px;border-width:3px}
+.passcard{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.slot{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;font-weight:900;font-size:.78rem;min-width:0}
+.slot .ring{width:62px;height:62px;border-radius:50%;border:3px dashed var(--ink2);display:flex;align-items:center;justify-content:center;background:var(--paper);color:var(--ink2);font-size:.72rem}
+.slot.done .ring{border:3px solid #d62828;color:#d62828;font-family:var(--font-display);font-size:1.05rem;letter-spacing:.06em;transform:rotate(-12deg);background:#fff5f5;box-shadow:0 0 0 3px #fff inset,0 0 0 5px #d62828 inset}
+.slot .date{font-size:.68rem;color:var(--ink2);font-weight:700}
+.reward{background:linear-gradient(135deg,#fff3b0,#ffd166);text-align:center}
+.cert{background:#fffdf5;border:4px double #c9a227;border-radius:18px;padding:18px;text-align:center;box-shadow:var(--shadow)}
+.cert input{font:inherit;font-weight:900;font-size:1.2rem;text-align:center;border:0;border-bottom:3px solid var(--ink);background:transparent;width:min(240px,80%);padding:4px;color:var(--ink)}
+.cert input:focus{outline:none;border-bottom-color:var(--blue)}
+.cert .stamps{display:grid;grid-template-columns:1fr 1fr;gap:16px 6px;justify-items:center;margin:14px 0}
+.cert .stamps .stamp{font-size:.95rem;padding:2px 8px}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 @media (max-width:460px){.arena canvas.actor{width:78px;height:104px}.tower{width:52px;height:96px}.tower .blk{width:42px;height:24px}.tower .blk.top{width:50px;height:22px}.arena .side .row{gap:2px}}
 @media (max-width:380px){.choices{grid-template-columns:1fr}}
@@ -262,6 +281,17 @@ h3{font-weight:900;font-size:1.05rem}
         <button class="btn small" id="btnDex">📖 單字圖鑑</button>
       </div>
     </div>
+  </div>
+
+  <div class="panel soft">
+    <div class="row between"><h3>🏅 闖關卡</h3><span class="tag" id="passCount">0/4</span></div>
+    <div class="muted" style="margin:4px 0 8px">贏一個遊戲就蓋一個 PASS 章，四關都通過就能向老師領點數卡！</div>
+    <div class="passcard" id="passCard"></div>
+  </div>
+  <div class="panel reward hidden" id="rewardPanel">
+    <h2>🏆 四關全部通過！</h2>
+    <div style="font-weight:900;margin-top:4px">請拿這個畫面給老師看，領取點數卡</div>
+    <button class="btn sun" id="btnCert" style="margin-top:10px">🎖️ 查看完成證書</button>
   </div>
 
   <div class="modes">
@@ -385,6 +415,7 @@ h3{font-weight:900;font-size:1.05rem}
     <div class="eyebrow" id="resultMode">推塔對戰</div>
     <h1 id="resultTitle" style="color:var(--blue2)">VICTORY</h1>
     <div class="result-stars" id="resultStars"></div>
+    <div id="resStampWrap" class="hidden" style="padding:6px 0"><span class="stamp big pop" id="resStamp">PASS</span><div id="resStampTxt" style="font-weight:900;margin-top:10px"></div></div>
     <div class="row" style="justify-content:center;gap:18px">
       <div><div class="eyebrow">答對</div><div class="big-num num" id="resCorrect">0/0</div></div>
       <div><div class="eyebrow">LP</div><div class="big-num num" id="resLP">+0</div></div>
@@ -399,6 +430,31 @@ h3{font-weight:900;font-size:1.05rem}
   <div class="row">
     <button class="btn primary grow" id="btnReplay">🔁 再玩一次</button>
     <button class="btn grow" id="btnResultHome">🏠 回大廳</button>
+  </div>
+</section>
+
+<!-- CERTIFICATE -->
+<section id="scr-cert" class="screen hidden">
+  <div class="topbar">
+    <button class="btn small" id="btnCertBack">← 大廳</button>
+    <h2>闖關完成證書</h2>
+  </div>
+  <div class="cert">
+    <div class="eyebrow">第四關 · 聽力競技場</div>
+    <h1 style="color:#c9a227">CERTIFICATE</h1>
+    <div style="margin:10px 0;font-weight:900">姓名 <input id="studentName" placeholder="請輸入你的名字" maxlength="20" autocomplete="off"></div>
+    <div class="stamps" id="certStamps"></div>
+    <div style="font-weight:900;font-size:1.2rem;color:#d62828">四關全部通過 ✔</div>
+    <div class="muted" id="certDate"></div>
+    <div style="margin-top:12px;font-weight:900;font-size:1.1rem">🎁 請拿給老師看，領取點數卡！</div>
+  </div>
+  <div class="row">
+    <button class="btn small" id="btnClearPass">🧹 清除印章（換下一位同學）</button>
+  </div>
+  <div class="row hidden" id="clearConfirm">
+    <span class="grow" style="font-weight:900">確定要清除四個印章嗎？</span>
+    <button class="btn small coral" id="btnClearYes">確定</button>
+    <button class="btn small" id="btnClearNo">取消</button>
   </div>
 </section>
 
@@ -467,8 +523,12 @@ const SKINS = [
 
 /* ===================== SAVE ===================== */
 const SAVE_KEY = "echoArenaSave4";
-let S = {lp:0,coins:0,skin:"knight",owned:["knight","mage","ninja"],mastery:{},voice:"f",muted:false,wins:0};
+let S = {lp:0,coins:0,skin:"knight",owned:["knight","mage","ninja"],mastery:{},voice:"f",muted:false,wins:0,pass:{},passAt:{},allPassAt:0,name:""};
 try{const raw=localStorage.getItem(SAVE_KEY); if(raw){const j=JSON.parse(raw); S={...S,...j}; if(!S.owned.includes(S.skin)) S.skin="knight";}}catch(e){}
+if(!S.pass||typeof S.pass!=="object") S.pass={}; if(!S.passAt||typeof S.passAt!=="object") S.passAt={}; if(typeof S.name!=="string") S.name="";
+const MODES=[{id:"tower",name:"推塔對戰",ico:"🏰"},{id:"spell",name:"聽寫高塔",ico:"🔤"},{id:"obby",name:"跑酷闖關",ico:"🏃"},{id:"boss",name:"BOSS 句子戰",ico:"👾"}];
+function passCount(){ return MODES.filter(m=>S.pass[m.id]).length; }
+function fmtDate(ts){ const d=new Date(ts); return (d.getMonth()+1)+"/"+d.getDate()+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); }
 function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S))}catch(e){}}
 function mastery(i){return S.mastery[i]||{c:0,a:0}}
 function addMastery(i,ok){const m=mastery(i); m.a++; if(ok)m.c++; S.mastery[i]=m;}
@@ -518,6 +578,7 @@ const SFX = {
   sad(){ [392,349,311,261].forEach((f,i)=>tone(f,.25,"triangle",.12,i*.2)); },
   whoosh(){ tone(200,.2,"triangle",.08,0,1200); },
   boom(){ tone(80,.5,"sawtooth",.2,0,30); tone(60,.6,"square",.15,.05,20); },
+  stamp(){ tone(130,.1,"square",.22,0,50); tone(60,.22,"sawtooth",.16,.04,25); tone(900,.03,"square",.05,.02); },
 };
 
 /* ===================== BLOCKY RENDERER ===================== */
@@ -642,6 +703,7 @@ function goLobby(){
   $("lpBar").style.width=pct+"%"; $("lpText").textContent = S.lp+" LP"+(nt?("，再 "+(nt.lp-S.lp)+" LP 升到"+nt.name):"");
   $("btnVoice").textContent = S.voice==="f"?"🎙️ 女聲":S.voice==="m"?"🎙️ 男聲":"🎙️ 隨機";
   $("btnMute").textContent = S.muted?"🔇":"🔊";
+  renderPassCard();
   if(!$("patchWords").children.length){ WORDS.forEach((w,i)=>{ const d=document.createElement("button"); d.className="wordchip"; d.innerHTML='<span class="en"></span><span class="zh"></span>'; d.children[0].textContent=w.en; d.children[1].textContent=w.zh; d.onclick=()=>{ sayWord(i); }; $("patchWords").appendChild(d); }); }
 }
 $("btnVoice").onclick=()=>{ S.voice = S.voice==="f"?"m":S.voice==="m"?"r":"f"; save(); goLobby(); sayWord(Math.floor(Math.random()*20)); };
@@ -654,7 +716,9 @@ document.querySelectorAll(".mode").forEach(b=>b.onclick=()=>{ const m=b.dataset.
 let lastMode=null;
 function showResult({mode,title,color,correct,total,lp,coins,missed,win}){
   lastMode=mode;
-  const before=tierOf(S.lp); S.lp=Math.max(0,S.lp+lp); if(win) S.wins++; save(); const after=tierOf(S.lp);
+  const before=tierOf(S.lp); S.lp=Math.max(0,S.lp+lp); if(win) S.wins++;
+  let newlyPassed=false; if(win&&!S.pass[mode]){ S.pass[mode]=true; S.passAt[mode]=Date.now(); newlyPassed=true; if(passCount()===MODES.length&&!S.allPassAt) S.allPassAt=Date.now(); }
+  save(); const after=tierOf(S.lp);
   show("scr-result");
   $("resultMode").textContent={tower:"推塔對戰",spell:"聽寫高塔",obby:"跑酷闖關",boss:"BOSS 句子戰"}[mode];
   $("resultTitle").textContent=title; $("resultTitle").style.color=color;
@@ -668,8 +732,32 @@ function showResult({mode,title,color,correct,total,lp,coins,missed,win}){
   $("resMissPanel").classList.toggle("hidden",uniq.length===0);
   $("resMiss").innerHTML="";
   uniq.forEach(i=>{ const w=WORDS[i]; const d=document.createElement("div"); d.className="row wordchip"; d.innerHTML='<span class="en"></span><span class="zh grow"></span><button class="btn mini">🔊</button><button class="btn mini">💬</button>'; d.children[0].textContent=w.en; d.children[1].textContent=w.zh; d.children[2].onclick=()=>sayWord(i); d.children[3].onclick=()=>saySentence(i); $("resMiss").appendChild(d); });
+  // PASS stamp
+  const wrap=$("resStampWrap"); wrap.classList.toggle("hidden",!win);
+  if(win){ const old=$("resStamp"); const st=old.cloneNode(true); old.replaceWith(st); $("resStampTxt").textContent = newlyPassed ? "🎉 本關通過！印章已蓋上（"+passCount()+"/4）" : "✓ 這一關之前已經蓋過章了（"+passCount()+"/4）"; setTimeout(()=>SFX.stamp(),380); }
   if(win){ SFX.fanfare(); confetti(60); } else SFX.sad();
+  if(newlyPassed&&passCount()===MODES.length){ setTimeout(()=>{ if(!$("scr-result").classList.contains("hidden")) showCert(true); },2600); }
 }
+function renderPassCard(){
+  const card=$("passCard"); card.innerHTML="";
+  MODES.forEach(m=>{ const d=document.createElement("div"); d.className="slot"+(S.pass[m.id]?" done":""); d.innerHTML='<div class="ring"></div><div></div><div class="date"></div>'; d.children[0].textContent=S.pass[m.id]?"PASS":"未通過"; d.children[1].textContent=m.ico+" "+m.name; d.children[2].textContent=S.pass[m.id]&&S.passAt[m.id]?fmtDate(S.passAt[m.id]):""; card.appendChild(d); });
+  $("passCount").textContent=passCount()+"/4";
+  document.querySelectorAll(".mode").forEach(b=>{ const old=b.querySelector(".stamp"); if(old) old.remove(); if(S.pass[b.dataset.mode]){ const sp=document.createElement("span"); sp.className="stamp"; sp.textContent="PASS"; b.appendChild(sp); } });
+  $("rewardPanel").classList.toggle("hidden",passCount()<MODES.length);
+}
+function showCert(first){
+  show("scr-cert");
+  const box=$("certStamps"); box.innerHTML=""; MODES.forEach(m=>{ const sp=document.createElement("span"); sp.className="stamp"+(first?" pop":""); sp.textContent="PASS · "+m.name; box.appendChild(sp); });
+  $("certDate").textContent="完成時間："+(S.allPassAt?fmtDate(S.allPassAt):"—");
+  $("studentName").value=S.name||""; $("clearConfirm").classList.add("hidden");
+  if(first){ confetti(140); SFX.fanfare(); announce("perfect",200); announce("rankup",1500); }
+}
+$("btnCert").onclick=()=>showCert(false);
+$("btnCertBack").onclick=()=>goLobby();
+$("studentName").addEventListener("input",e=>{ S.name=e.target.value.slice(0,20); save(); });
+$("btnClearPass").onclick=()=>$("clearConfirm").classList.remove("hidden");
+$("btnClearNo").onclick=()=>$("clearConfirm").classList.add("hidden");
+$("btnClearYes").onclick=()=>{ S.pass={}; S.passAt={}; S.allPassAt=0; S.name=""; save(); goLobby(); toast("印章已清除，換下一位同學！"); };
 $("btnResultHome").onclick=()=>goLobby();
 $("btnReplay").onclick=()=>{ if(lastMode==="tower") startBattle(false); else if(lastMode==="spell") startBattle(true); else if(lastMode==="obby") startObby(); else startBoss(); };
 
