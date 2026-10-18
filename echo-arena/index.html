@@ -234,6 +234,46 @@ h3{font-weight:900;font-size:1.05rem}
 </head>
 <body>
 
+<!-- 密碼鎖：密碼只存雜湊值（SHA-256("echo-games:"+密碼）），要改密碼請把下方 PW_HASH 換成新密碼的雜湊值 -->
+<style>
+html.pw-locked body > :not(#pwGate){visibility:hidden!important}
+#pwGate{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:16px;background:linear-gradient(160deg,#1c2a3a,#2f3f55);font-family:"Noto Sans TC",system-ui,-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;color:#1c2a3a;visibility:visible}
+#pwGate .pw-card{background:#fff;border-radius:22px;padding:26px 22px;width:min(360px,100%);text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.35);display:flex;flex-direction:column;gap:12px;margin:0}
+#pwGate .pw-lock{font-size:3rem;line-height:1}
+#pwGate h2{margin:0;font-size:1.3rem;font-weight:900}
+#pwGate p{margin:0;color:#5b6b7f;font-size:.95rem;font-weight:700}
+#pwGate input{font:inherit;font-size:1.8rem;letter-spacing:.4em;text-align:center;padding:10px;border:3px solid #c9d6dd;border-radius:14px;width:100%;font-weight:900;color:#1c2a3a;background:#fff}
+#pwGate input:focus{outline:none;border-color:#2f7df6}
+#pwGate .pw-btn{font:inherit;font-weight:900;font-size:1.1rem;min-height:52px;border-radius:14px;border:0;background:#2f7df6;color:#fff;cursor:pointer}
+#pwGate .pw-btn:active{transform:scale(.97)}
+#pwGate .pw-msg{min-height:1.4em;color:#d93445;font-weight:900;font-size:.95rem}
+#pwGate .shake{animation:pwShake .4s}
+@keyframes pwShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+</style>
+<div id="pwGate">
+  <form class="pw-card" id="pwForm" autocomplete="off">
+    <div class="pw-lock">🔒</div>
+    <h2>請輸入密碼</h2>
+    <p>遊戲密碼只有老師知道喔</p>
+    <input id="pwInput" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="12" autocomplete="off" aria-label="密碼" placeholder="••••">
+    <button type="submit" class="pw-btn">進入</button>
+    <div class="pw-msg" id="pwMsg"></div>
+  </form>
+</div>
+<script>
+(function(){
+  const PW_HASH="d87d16f556195af584f34ef8f045f889712f2869e9181e1b839d3ade9b05013a";
+  function sha256(s){const K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];const b=new TextEncoder().encode(s);const l=b.length;const n=((l+9+63)>>6)<<6;const m=new Uint8Array(n);m.set(b);m[l]=0x80;const dv=new DataView(m.buffer);dv.setUint32(n-4,(l*8)>>>0);dv.setUint32(n-8,Math.floor(l*8/4294967296));let h=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];const w=new Uint32Array(64);const r=(x,c)=>(x>>>c)|(x<<(32-c));for(let i=0;i<n;i+=64){for(let t=0;t<16;t++)w[t]=dv.getUint32(i+t*4);for(let t=16;t<64;t++){const s0=r(w[t-15],7)^r(w[t-15],18)^(w[t-15]>>>3);const s1=r(w[t-2],17)^r(w[t-2],19)^(w[t-2]>>>10);w[t]=(w[t-16]+s0+w[t-7]+s1)>>>0;}let[a,b2,c,d,e,f,g,hh]=h;for(let t=0;t<64;t++){const S1=r(e,6)^r(e,11)^r(e,25);const ch=(e&f)^(~e&g);const t1=(hh+S1+ch+K[t]+w[t])>>>0;const S0=r(a,2)^r(a,13)^r(a,22);const mj=(a&b2)^(a&c)^(b2&c);const t2=(S0+mj)>>>0;hh=g;g=f;f=e;e=(d+t1)>>>0;d=c;c=b2;b2=a;a=(t1+t2)>>>0;}h=[(h[0]+a)>>>0,(h[1]+b2)>>>0,(h[2]+c)>>>0,(h[3]+d)>>>0,(h[4]+e)>>>0,(h[5]+f)>>>0,(h[6]+g)>>>0,(h[7]+hh)>>>0];}return h.map(x=>x.toString(16).padStart(8,"0")).join("");}
+  document.documentElement.classList.add("pw-locked");
+  const gate=document.getElementById("pwGate"),form=document.getElementById("pwForm"),input=document.getElementById("pwInput"),msg=document.getElementById("pwMsg");
+  let fails=0,lockUntil=0;
+  form.addEventListener("submit",function(e){ e.preventDefault(); const now=Date.now(); if(now<lockUntil){ msg.textContent="錯太多次了，請等 "+Math.ceil((lockUntil-now)/1000)+" 秒再試"; return; }
+    const v=(input.value||"").trim(); if(!v){ msg.textContent="請先輸入密碼"; return; }
+    if(sha256("echo-games:"+v)===PW_HASH){ document.documentElement.classList.remove("pw-locked"); gate.remove(); try{ window.dispatchEvent(new Event("resize")); }catch(err){} }
+    else { fails++; input.value=""; form.classList.add("shake"); setTimeout(function(){ form.classList.remove("shake"); },400); if(fails>=5){ lockUntil=Date.now()+30000; fails=0; msg.textContent="錯太多次了，請等 30 秒再試"; } else msg.textContent="密碼錯誤，再試一次"; input.focus(); } });
+  setTimeout(function(){ try{ input.focus(); }catch(err){} },300);
+})();
+</script>
 <div class="cloud" style="top:6%;animation-duration:70s;animation-delay:-20s"></div>
 <div class="cloud" style="top:20%;animation-duration:95s;animation-delay:-60s;transform:scale(.7)"></div>
 <div class="cloud" style="top:38%;animation-duration:80s;animation-delay:-5s;transform:scale(.55)"></div>
