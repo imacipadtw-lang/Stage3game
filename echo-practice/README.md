@@ -5,5 +5,6 @@
 
 - `index.html`：練習本體
 - `voices.json`：老師語音（Kokoro 神經語音，MP3 / base64）
+- `lame.min.js`：瀏覽器端 MP3 編碼器（lamejs 1.2.1，LGPL-3.0，見 LICENSE-lamejs.txt），用來把跟讀錄音合成一個 MP3 匯出給家長、老師
 
 需用 https 開啟並允許麥克風；語音評分支援 Safari（iOS 14.5+）與 Chrome。

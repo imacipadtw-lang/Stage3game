@@ -164,6 +164,7 @@ input[type=text]{font:inherit;font-weight:700;padding:8px 10px;border:2px solid 
     <div class="row" style="justify-content:center">
       <button class="btn small" id="btnList">📚 單字列表</button>
       <button class="btn small" id="btnLog">📊 練習紀錄（家長）</button>
+      <button class="btn small" id="btnHomeExport">🎧 匯出錄音 MP3</button>
     </div>
   </div>
   <div class="card stack">
@@ -247,6 +248,9 @@ input[type=text]{font:inherit;font-weight:700;padding:8px 10px;border:2px solid 
     <h2 id="sumTitle">今天練了 5 個字，真棒！</h2>
     <div class="stack" id="sumList"></div>
     <div class="muted" id="sumMsg"></div>
+  </div>
+  <div id="sumExportSlot"></div>
+  <div class="card center stack">
     <button class="btn primary block" id="btnAnother">再練一組 5 個字</button>
     <button class="btn block" id="btnSumHome">回首頁</button>
   </div>
@@ -272,6 +276,7 @@ input[type=text]{font:inherit;font-weight:700;padding:8px 10px;border:2px solid 
     <div class="tablewrap"><table><thead><tr><th>單字</th><th>聽力</th><th>發音</th><th>句子</th><th>最近</th></tr></thead><tbody id="logTable"></tbody></table></div>
     <div class="muted">聽力 = 第一次就選對的次數 / 練習次數。發音、句子 = 自動評分的最佳成績（★★★ 85 分以上，★★ 60 分以上，★ 35 分以上）。</div>
   </div>
+  <div id="logExportSlot"></div>
   <div class="card stack">
     <div class="row between"><h3>🎙️ 錄音（最近 40 筆）</h3><span class="muted" id="recCount"></span></div>
     <div class="stack" id="recList"><div class="muted">還沒有錄音。</div></div>
@@ -281,6 +286,21 @@ input[type=text]{font:inherit;font-weight:700;padding:8px 10px;border:2px solid 
     <div class="row hidden" id="clearConfirm"><span class="grow" style="font-weight:900">確定要清除？清除後無法復原。</span><button class="btn small" style="background:var(--rec);color:#fff" id="btnClearYes">確定</button><button class="btn small" id="btnClearNo">取消</button></div>
   </div>
 </section>
+
+<!-- EXPORT CARD (moved into whichever screen shows it) -->
+<div class="card stack" id="exportCard" hidden>
+  <h3>🎧 匯出完整錄音 MP3</h3>
+  <div class="muted">把跟讀錄音合成一個 MP3（每段先是老師唸、再是小朋友唸），下載或直接傳給家長、老師聽。</div>
+  <div class="seg" id="expScope"><button data-s="today" class="on">今天的錄音</button><button data-s="all">全部錄音</button></div>
+  <button class="btn primary block" id="btnExport">🎵 製作 MP3</button>
+  <div class="bar hidden" id="expBar"><i></i></div>
+  <div class="muted" id="expStatus"></div>
+  <div class="stack hidden" id="expResult">
+    <audio controls id="expAudio" style="width:100%"></audio>
+    <div class="muted" id="expInfo"></div>
+    <div class="row"><button class="btn ok grow" id="btnExpDownload">⬇️ 下載 MP3</button><button class="btn grow hidden" id="btnExpShare">📤 分享給家長</button></div>
+  </div>
+</div>
 
 <!-- SETTINGS -->
 <section id="scr-settings" class="screen hidden">
@@ -301,6 +321,7 @@ input[type=text]{font:inherit;font-weight:700;padding:8px 10px;border:2px solid 
 
 </div>
 
+<script src="lame.min.js"></script>
 <script>
 /* ===================== DATA ===================== */
 const WORDS = [
@@ -458,7 +479,7 @@ $("btnNext2").onclick=()=>goStep3(); $("btnNext3").onclick=()=>finishWord();
 function finishWord(){ const w=WORDS[P.w]; const entry={t:Date.now(),w:P.w,ok:P.listenTries===1,tries:P.listenTries,say:P.say,sent:P.sent}; S.log.push(entry); if(S.log.length>2000) S.log=S.log.slice(-2000); const b=bestOf(P.w); b.listenN++; if(entry.ok) b.listenOk++; if(P.say!=null&&(b.say==null||P.say>b.say)) b.say=P.say; if(P.sent!=null&&(b.sent==null||P.sent>b.sent)) b.sent=P.sent; b.last=entry.t; S.best[P.w]=b; save(); P.results.push(entry);
   ["step1","step2","step3"].forEach(id=>$(id).classList.add("hidden")); setStepper(4); $("stepDone").classList.remove("hidden"); $("doneEn").textContent=w.en; $("doneZh").textContent=w.zh; $("doneListen").textContent=entry.ok?"✓":"✓ ("+entry.tries+"次)"; $("doneSay").textContent=starStr(P.say); $("doneSent").textContent=starStr(P.sent); $("doneMsg").textContent=PRAISE[Math.floor(Math.random()*PRAISE.length)]+(P.idx+1<P.session.length?" 還有 "+(P.session.length-P.idx-1)+" 個字。":""); $("btnNextWord").textContent = P.idx+1<P.session.length?"下一個字 →":"看今天的成績 →"; SFX.done(); }
 $("btnNextWord").onclick=()=>{ P.idx++; if(P.idx<P.session.length) startWord(); else showSummary(); };
-function showSummary(){ show("scr-summary"); const n=doneTodaySet().size; $("sumTitle").textContent = P.results.length===1?"練完一個字了！":"這一組練完了，真棒！"; const list=$("sumList"); list.innerHTML=""; P.results.forEach(e=>{ const w=WORDS[e.w]; const d=document.createElement("div"); d.className="wrow"; d.innerHTML='<span class="ico"></span><div><div class="en"></div><div class="zh"></div></div><div class="sm"></div>'; d.children[0].textContent=w.ico; d.children[1].children[0].textContent=w.en; d.children[1].children[1].textContent=w.zh; d.children[2].innerHTML='<div></div><div></div>'; d.children[2].children[0].textContent="發音 "+starStr(e.say); d.children[2].children[1].textContent="句子 "+starStr(e.sent); list.appendChild(d); }); $("sumMsg").textContent="今天總共練了 "+n+" / 20 個字"+(streakDays()>1?"，連續 "+streakDays()+" 天練習！":"。"); confetti(60); announce("excellent",300); }
+function showSummary(){ show("scr-summary"); mountExportCard("sumExportSlot"); const n=doneTodaySet().size; $("sumTitle").textContent = P.results.length===1?"練完一個字了！":"這一組練完了，真棒！"; const list=$("sumList"); list.innerHTML=""; P.results.forEach(e=>{ const w=WORDS[e.w]; const d=document.createElement("div"); d.className="wrow"; d.innerHTML='<span class="ico"></span><div><div class="en"></div><div class="zh"></div></div><div class="sm"></div>'; d.children[0].textContent=w.ico; d.children[1].children[0].textContent=w.en; d.children[1].children[1].textContent=w.zh; d.children[2].innerHTML='<div></div><div></div>'; d.children[2].children[0].textContent="發音 "+starStr(e.say); d.children[2].children[1].textContent="句子 "+starStr(e.sent); list.appendChild(d); }); $("sumMsg").textContent="今天總共練了 "+n+" / 20 個字"+(streakDays()>1?"，連續 "+streakDays()+" 天練習！":"。"); confetti(60); announce("excellent",300); }
 $("btnAnother").onclick=()=>startSession(null); $("btnSumHome").onclick=()=>goHome();
 $("btnQuit").onclick=()=>{ if(Mic.capturing&&Mic.stopFn) Mic.stopFn(); goHome(); };
 
@@ -467,7 +488,7 @@ function openList(){ show("scr-list"); const list=$("wordList"); list.innerHTML=
 $("btnListBack").onclick=()=>goHome();
 
 /* ===================== PARENT LOG ===================== */
-async function openLog(){ show("scr-log"); $("logName").textContent=(S.name?S.name+" 的":"小朋友的")+"紀錄"; $("logDate").textContent=fmtTime(Date.now()); const t=todayKey(); const today=S.log.filter(e=>dayKey(e.t)===t); const says=today.map(e=>e.say).filter(x=>x!=null); $("lgToday").textContent=new Set(today.map(e=>e.w)).size; $("lgAvg").textContent=says.length?Math.round(says.reduce((a,b)=>a+b,0)/says.length)+" 分":"—"; $("lgTotal").textContent=S.log.length; renderDays($("days2"));
+async function openLog(){ show("scr-log"); mountExportCard("logExportSlot"); $("logName").textContent=(S.name?S.name+" 的":"小朋友的")+"紀錄"; $("logDate").textContent=fmtTime(Date.now()); const t=todayKey(); const today=S.log.filter(e=>dayKey(e.t)===t); const says=today.map(e=>e.say).filter(x=>x!=null); $("lgToday").textContent=new Set(today.map(e=>e.w)).size; $("lgAvg").textContent=says.length?Math.round(says.reduce((a,b)=>a+b,0)/says.length)+" 分":"—"; $("lgTotal").textContent=S.log.length; renderDays($("days2"));
   const tb=$("logTable"); tb.innerHTML=""; WORDS.forEach((w,i)=>{ const b=bestOf(i); const tr=document.createElement("tr"); tr.innerHTML='<td class="en"></td><td></td><td><span class="st"></span></td><td><span class="st"></span></td><td></td>'; tr.children[0].textContent=w.en+" "; const zh=document.createElement("small"); zh.textContent=w.zh; zh.style.color="var(--ink2)"; tr.children[0].appendChild(zh); tr.children[1].textContent=b.listenN?b.listenOk+"/"+b.listenN:"—"; tr.children[2].firstChild.textContent=b.say!=null?starStr(b.say)+" "+b.say:"—"; tr.children[3].firstChild.textContent=b.sent!=null?starStr(b.sent)+" "+b.sent:"—"; tr.children[4].textContent=b.last?fmtDate(b.last):"—"; tb.appendChild(tr); });
   const recs=await listRec(); const list=$("recList"); list.innerHTML=""; $("recCount").textContent=recs.length?"共 "+recs.length+" 筆":""; if(!recs.length){ list.innerHTML='<div class="muted">還沒有錄音。</div>'; } recs.slice(0,40).forEach(r=>{ const w=WORDS[r.w]||{en:"?"}; const d=document.createElement("div"); d.className="recrow"; d.innerHTML='<span class="t"></span><span class="w"></span><span class="sc"></span><button class="btn small">▶</button>'; d.children[0].textContent=fmtTime(r.t); d.children[1].textContent=(r.kind==="sent"?w.sen:w.en); d.children[2].textContent=r.score!=null?r.score+" 分":""; d.children[3].onclick=()=>playBlob(r.blob); list.appendChild(d); });
   $("clearConfirm").classList.add("hidden"); }
@@ -482,6 +503,45 @@ $("nameInput").addEventListener("input",e=>{ S.name=e.target.value.slice(0,20); 
 [...$("voiceSeg").children].forEach(b=>b.onclick=()=>{ S.voice=b.dataset.v; save(); openSettings(); ensureCtx(); sayWord(Math.floor(Math.random()*20)); });
 [...$("modeSeg").children].forEach(b=>b.onclick=()=>{ S.mode=b.dataset.m; save(); openSettings(); });
 $("btnTestMic").onclick=async()=>{ $("testMicTxt").textContent="請說 “hello”…"; const out=await capture(2500,()=>{}); if(out.transcripts.length) $("testMicTxt").textContent="✅ 聽到了："+out.transcripts[0]+(out.blob?"（錄音正常）":"（沒有錄到音檔）"); else if(out.blob) $("testMicTxt").textContent="✅ 錄音正常，但沒有辨識到文字"+(out.srError?"（"+out.srError+"）":"")+"。可改成「只錄音」。"; else $("testMicTxt").textContent="❌ 沒有收到聲音"+(out.srError?"（"+out.srError+"）":"")+"。請確認已允許麥克風。"; if(out.blob) setTimeout(()=>playBlob(out.blob),300); };
+
+/* ===================== MP3 EXPORT ===================== */
+let lastExport=null, expScope="today";
+function decodeBlob(blob){ return new Promise(async(res,rej)=>{ try{ const ctx=ensureCtx(); if(!ctx) return rej(new Error("no-ctx")); const ab=await blob.arrayBuffer(); const p=ctx.decodeAudioData(ab,res,rej); if(p&&p.then) p.then(res,rej); }catch(e){ rej(e); } }); }
+async function buildMix(recs,onProgress){
+  const items=[]; for(let i=0;i<recs.length;i++){ try{ const buf=await decodeBlob(recs[i].blob); if(buf&&buf.duration>0.05) items.push({rec:recs[i],buf}); }catch(e){} onProgress(0.05+0.3*(i+1)/recs.length); }
+  if(!items.length) throw new Error("no-audio");
+  const SRATE=24000, gap=0.35, gap2=0.8; let t=0.3; const sched=[];
+  for(const it of items){ const key=it.rec.kind==="sent"?"s"+it.rec.w:"w"+it.rec.w+"f"; const tb=Audio_.buf[key]; if(tb){ sched.push({buf:tb,at:t,gain:1}); t+=tb.duration+gap; } let peak=0; for(let c=0;c<it.buf.numberOfChannels;c++){ const d=it.buf.getChannelData(c); for(let k=0;k<d.length;k+=4){ const v=Math.abs(d[k]); if(v>peak) peak=v; } } const gain=peak>0.001?Math.min(6,0.85/peak):1; sched.push({buf:it.buf,at:t,gain}); t+=it.buf.duration+gap2; }
+  const OAC=window.OfflineAudioContext||window.webkitOfflineAudioContext; if(!OAC) throw new Error("no-offline");
+  const off=new OAC(1,Math.ceil(t*SRATE),SRATE);
+  sched.forEach(s=>{ const src=off.createBufferSource(); src.buffer=s.buf; const g=off.createGain(); g.gain.value=s.gain; src.connect(g).connect(off.destination); src.start(s.at); });
+  const rendered=await new Promise((res,rej)=>{ off.oncomplete=e=>res(e.renderedBuffer); try{ const p=off.startRendering(); if(p&&p.then) p.then(res,rej); }catch(e){ rej(e); } });
+  return {pcm:rendered.getChannelData(0),sr:SRATE,duration:rendered.duration,count:items.length};
+}
+function encodeMp3(pcm,sr,onProgress){ return new Promise((res,rej)=>{ try{ const enc=new lamejs.Mp3Encoder(1,sr,48); const block=1152; const out=[]; let i=0; const s16=new Int16Array(block);
+  function step(){ try{ const end=Math.min(pcm.length,i+block*40); for(;i<end;i+=block){ const n=Math.min(block,pcm.length-i); for(let k=0;k<n;k++){ const v=Math.max(-1,Math.min(1,pcm[i+k])); s16[k]=v<0?v*32768:v*32767; } const mp3=enc.encodeBuffer(n===block?s16:s16.subarray(0,n)); if(mp3.length) out.push(new Int8Array(mp3)); } onProgress(i/pcm.length); if(i<pcm.length) setTimeout(step,0); else { const last=enc.flush(); if(last.length) out.push(new Int8Array(last)); res(new Blob(out,{type:"audio/mpeg"})); } }catch(e){ rej(e); } }
+  step(); }catch(e){ rej(e); } }); }
+function fmtDur(sec){ const m=Math.floor(sec/60), s=Math.round(sec%60); return m?m+" 分 "+s+" 秒":s+" 秒"; }
+function exportFileName(){ const d=new Date(); const ds=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); const nm=(S.name||"").replace(/[^A-Za-z0-9]/g,""); return "EchoPractice_"+(nm?nm+"_":"")+ds+(expScope==="all"?"_all":"")+".mp3"; }
+function mountExportCard(slotId){ const card=$("exportCard"); card.hidden=false; $(slotId).appendChild(card); $("expResult").classList.add("hidden"); $("expBar").classList.add("hidden"); $("expStatus").textContent=""; $("btnExport").disabled=false; [...$("expScope").children].forEach(b=>b.classList.toggle("on",b.dataset.s===expScope)); }
+[...$("expScope").children].forEach(b=>b.onclick=()=>{ expScope=b.dataset.s; [...$("expScope").children].forEach(x=>x.classList.toggle("on",x===b)); });
+async function exportMp3(){ const status=t=>{ $("expStatus").textContent=t; }; const bar=p=>{ $("expBar").classList.remove("hidden"); $("expBar").firstElementChild.style.width=Math.round(Math.max(0,Math.min(1,p))*100)+"%"; };
+  if(!window.lamejs){ status("MP3 編碼器沒有載入，請重新整理頁面再試。"); return; }
+  const btn=$("btnExport"); btn.disabled=true; $("expResult").classList.add("hidden"); lastExport=null; ensureCtx();
+  try{ const all=await listRec(); const t=todayKey(); let recs=expScope==="today"?all.filter(r=>dayKey(r.t)===t):all; recs=recs.slice().sort((a,b)=>a.t-b.t);
+    if(!recs.length){ status(expScope==="today"?"今天還沒有錄音，先去練習吧！":"還沒有任何錄音。"); btn.disabled=false; return; }
+    status("讀取 "+recs.length+" 段錄音…"); bar(0.03);
+    const mix=await buildMix(recs,bar); status("製作 MP3 中…"); const blob=await encodeMp3(mix.pcm,mix.sr,p=>bar(0.35+0.65*p));
+    const name=exportFileName(); lastExport={blob,name}; bar(1); status("完成！可以先在下方試聽。");
+    const a=$("expAudio"); try{ if(a.dataset.url) URL.revokeObjectURL(a.dataset.url); }catch(e){} const u=URL.createObjectURL(blob); a.src=u; a.dataset.url=u; $("expInfo").textContent="共 "+mix.count+" 段錄音 · "+fmtDur(mix.duration)+" · "+(blob.size/1048576).toFixed(2)+" MB · "+name; $("expResult").classList.remove("hidden");
+    let canShare=false; try{ const f=new File([blob],name,{type:"audio/mpeg"}); canShare=!!(navigator.canShare&&navigator.canShare({files:[f]})); }catch(e){} $("btnExpShare").classList.toggle("hidden",!canShare);
+  }catch(e){ status(e&&e.message==="no-audio"?"錄音檔無法解碼（可能是別的瀏覽器錄的）。請用當初錄音的瀏覽器開啟再匯出。":"製作失敗："+(e&&e.message?e.message:e)); }
+  btn.disabled=false; }
+function downloadBlob(blob,name){ const u=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=u; a.download=name; a.rel="noopener"; document.body.appendChild(a); a.click(); setTimeout(()=>{ a.remove(); try{ URL.revokeObjectURL(u); }catch(e){} },5000); }
+$("btnExport").onclick=()=>exportMp3();
+$("btnExpDownload").onclick=()=>{ if(lastExport){ downloadBlob(lastExport.blob,lastExport.name); toast("已開始下載 MP3",1500); } };
+$("btnExpShare").onclick=async()=>{ if(!lastExport) return; try{ const f=new File([lastExport.blob],lastExport.name,{type:"audio/mpeg"}); await navigator.share({files:[f],title:"聽力跟讀錄音 "+(S.name||"")}); }catch(e){ if(!(e&&e.name==="AbortError")) toast("無法分享，請改用下載"); } };
+$("btnHomeExport").onclick=async()=>{ await openLog(); $("exportCard").scrollIntoView({behavior:"smooth",block:"start"}); };
 
 /* ===================== INIT ===================== */
 loadVoices(); goHome();
