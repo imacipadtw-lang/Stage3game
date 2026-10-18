@@ -1,0 +1,883 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="回聲競技場 Echo Arena：第四關 20 個單字的英語聽力對戰遊戲（推塔對戰、聽寫高塔、跑酷闖關、BOSS 句子戰）">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>回聲競技場 Echo Arena</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Noto+Sans+TC:wght@500;700;900&display=swap">
+<style>
+/* Layout: one-screen arcade app. A single centered column (max 540px) holds every screen; the sky world fills the edges on wide displays. */
+:root{
+  --sky1:#6cc4ff; --sky2:#d8f1ff; --grass:#5ccb5f; --grass2:#3ea744;
+  --ink:#1f2b3d; --ink2:#4b5a70; --paper:#ffffff; --paper2:#f2f7fb;
+  --sun:#ffc531; --sun2:#e5a400; --blue:#2f86ff; --blue2:#1d63cc;
+  --coral:#ff5f57; --coral2:#d93a33; --mint:#2ecf8f; --mint2:#1ea76f;
+  --violet:#8a5cff; --violet2:#6b3fe0; --stone:#8d99ab; --stone2:#5f6b7d;
+  --font-display:'Lilita One','Noto Sans TC',system-ui,sans-serif;
+  --font-body:'Noto Sans TC',system-ui,-apple-system,'PingFang TC','Microsoft JhengHei',sans-serif;
+  --shadow:0 4px 0 var(--ink);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;background:linear-gradient(180deg,var(--sky1) 0%,var(--sky2) 70%,var(--grass) 70.2%,var(--grass2) 100%);
+  color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.4;
+  overflow:hidden;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  user-select:none;-webkit-user-select:none;
+}
+button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
+button:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.hidden{display:none!important}
+
+/* clouds */
+.cloud{position:fixed;width:140px;height:44px;background:#fff;border-radius:40px;opacity:.9;z-index:0;pointer-events:none;animation:drift linear infinite}
+.cloud::before,.cloud::after{content:"";position:absolute;background:#fff;border-radius:50%}
+.cloud::before{width:60px;height:60px;left:20px;top:-26px}
+.cloud::after{width:44px;height:44px;left:70px;top:-16px}
+@keyframes drift{from{transform:translateX(-200px)}to{transform:translateX(calc(100vw + 200px))}}
+
+#app{position:relative;z-index:1;height:100%;max-width:560px;margin:0 auto;display:flex;flex-direction:column;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px}
+.screen{flex:1;min-height:0;display:flex;flex-direction:column;gap:12px;overflow-y:auto;overflow-x:hidden;padding-bottom:12px}
+.screen::-webkit-scrollbar{width:0}
+
+/* chunky block panels */
+.panel{background:var(--paper);border:3px solid var(--ink);border-radius:18px;box-shadow:var(--shadow);padding:14px}
+.panel.soft{background:var(--paper2)}
+.eyebrow{font-family:var(--font-display);letter-spacing:.08em;font-size:.8rem;color:var(--ink2);text-transform:uppercase}
+h1,h2,h3{margin:0;text-wrap:balance;line-height:1.15}
+h1{font-family:var(--font-display);font-size:2.4rem;letter-spacing:.02em}
+h2{font-weight:900;font-size:1.35rem}
+h3{font-weight:900;font-size:1.05rem}
+.display{font-family:var(--font-display)}
+.num{font-variant-numeric:tabular-nums}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:10px 18px;border-radius:16px;
+  border:3px solid var(--ink);background:var(--paper);box-shadow:var(--shadow);font-weight:900;font-size:1.05rem;
+  transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translateY(4px);box-shadow:0 0 0 var(--ink)}
+.btn.primary{background:var(--blue);color:#fff}
+.btn.sun{background:var(--sun);color:var(--ink)}
+.btn.mint{background:var(--mint);color:#fff}
+.btn.coral{background:var(--coral);color:#fff}
+.btn.violet{background:var(--violet);color:#fff}
+.btn.ghost{background:transparent;box-shadow:none;border-color:transparent;min-height:40px}
+.btn.small{min-height:40px;padding:6px 12px;font-size:.95rem;border-radius:12px}
+.btn.round{width:52px;height:52px;padding:0;border-radius:50%;font-size:1.4rem}
+.btn:disabled{opacity:.5;filter:grayscale(.4);cursor:default}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row.between{justify-content:space-between}
+.grow{flex:1;min-width:0}
+.stack{display:flex;flex-direction:column;gap:10px}
+.center{text-align:center}
+
+/* top bar */
+.topbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--paper);border:3px solid var(--ink);border-radius:999px;padding:4px 12px;font-weight:900;box-shadow:var(--shadow);font-size:.95rem}
+.chip .coin{width:18px;height:18px;border-radius:50%;background:var(--sun);border:2px solid var(--sun2);display:inline-block;box-shadow:inset -3px -3px 0 var(--sun2)}
+
+/* start */
+#scr-start{justify-content:center;align-items:center;text-align:center}
+.logo{font-family:var(--font-display);font-size:clamp(2.6rem,11vw,4.2rem);line-height:.95;color:#fff;
+  text-shadow:0 4px 0 var(--ink),0 0 0 var(--ink),-2px -2px 0 var(--ink),2px -2px 0 var(--ink),-2px 2px 0 var(--ink),2px 2px 0 var(--ink);letter-spacing:.02em}
+.logo small{display:block;font-family:var(--font-body);font-weight:900;font-size:clamp(1.1rem,4.5vw,1.5rem);color:var(--sun);margin-top:4px;
+  text-shadow:0 3px 0 var(--ink),-2px -2px 0 var(--ink),2px -2px 0 var(--ink),-2px 2px 0 var(--ink),2px 2px 0 var(--ink)}
+.season-tag{display:inline-block;background:var(--violet);color:#fff;border:3px solid var(--ink);border-radius:12px;padding:6px 14px;font-weight:900;box-shadow:var(--shadow);transform:rotate(-3deg)}
+.loadbar{width:min(320px,80vw);height:18px;border:3px solid var(--ink);border-radius:999px;background:#fff;overflow:hidden}
+.loadbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--mint),var(--blue));transition:width .25s}
+.heroes-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.heroes-row canvas{width:84px;height:112px}
+
+/* bars */
+.bar{position:relative;height:16px;border:3px solid var(--ink);border-radius:999px;background:#dfe6ef;overflow:hidden}
+.bar i{display:block;height:100%;width:100%;background:var(--mint);transition:width .35s cubic-bezier(.2,.8,.2,1)}
+.bar.hp i{background:linear-gradient(180deg,#5dff9f,var(--mint))}
+.bar.hp.low i{background:linear-gradient(180deg,#ff9a95,var(--coral))}
+.bar.time i{background:linear-gradient(90deg,var(--sun),#ff8f3a);transition:none}
+.bar.lp i{background:linear-gradient(90deg,var(--violet),#c59cff)}
+
+/* arena */
+.arena{position:relative;border:3px solid var(--ink);border-radius:18px;overflow:hidden;background:linear-gradient(180deg,#9ad9ff 0%,#dff3ff 58%,#6fd473 58.2%,#4bb650 100%);box-shadow:var(--shadow);min-height:230px}
+.arena .ground{position:absolute;left:0;right:0;bottom:0;height:42%;background:repeating-linear-gradient(90deg,transparent 0 38px,rgba(0,0,0,.05) 38px 40px)}
+.arena .side{position:absolute;bottom:14%;display:flex;flex-direction:column;align-items:center;gap:6px;width:48%}
+.arena .side.left{left:1%}.arena .side.right{right:1%}
+.arena .side .row{flex-wrap:nowrap;gap:6px}
+.arena canvas.actor{width:96px;height:128px;transition:transform .18s;flex:none}
+.tower{position:relative;width:64px;height:112px;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;transition:transform .6s,opacity .6s}
+.tower .blk{width:52px;height:28px;background:var(--stone);border:3px solid var(--ink);border-radius:6px;box-shadow:inset -8px 0 0 var(--stone2)}
+.tower .blk.top{width:62px;height:24px;background:var(--sun);box-shadow:inset -8px 0 0 var(--sun2);border-radius:8px 8px 4px 4px}
+.tower.enemy .blk{background:#9d7fe8;box-shadow:inset -8px 0 0 #6c4fc7}.tower.enemy .blk.top{background:var(--coral);box-shadow:inset -8px 0 0 var(--coral2)}
+.tower.dead{transform:rotate(14deg) translateY(30px);opacity:0}
+.tower-hp{width:100%;max-width:150px}
+.tag{font-weight:900;font-size:.85rem;background:var(--paper);border:3px solid var(--ink);border-radius:10px;padding:2px 8px}
+.shake{animation:shake .35s}
+@keyframes shake{0%,100%{transform:translate(0)}20%{transform:translate(-6px,2px)}40%{transform:translate(6px,-2px)}60%{transform:translate(-4px,1px)}80%{transform:translate(4px,0)}}
+.float-dmg{position:absolute;font-family:var(--font-display);font-size:1.6rem;color:#fff;text-shadow:0 3px 0 var(--ink),-2px 0 0 var(--ink),2px 0 0 var(--ink),0 -2px 0 var(--ink);animation:floatUp .9s forwards;pointer-events:none;z-index:5}
+@keyframes floatUp{from{transform:translateY(0) scale(.7);opacity:1}to{transform:translateY(-70px) scale(1.2);opacity:0}}
+.spark{position:absolute;width:10px;height:10px;border-radius:2px;pointer-events:none;animation:spark .7s forwards;z-index:4}
+@keyframes spark{to{transform:translate(var(--dx),var(--dy)) rotate(260deg);opacity:0}}
+
+/* question */
+.qcard{text-align:center}
+.listen-btn{width:92px;height:92px;border-radius:50%;border:4px solid var(--ink);background:radial-gradient(circle at 35% 30%,#6fb3ff,var(--blue) 60%,var(--blue2));color:#fff;font-size:2.4rem;box-shadow:0 6px 0 var(--ink);display:inline-flex;align-items:center;justify-content:center;position:relative}
+.listen-btn:active{transform:translateY(5px);box-shadow:0 1px 0 var(--ink)}
+.listen-btn.playing::after{content:"";position:absolute;inset:-14px;border-radius:50%;border:4px solid rgba(47,134,255,.6);animation:pulse 1s infinite}
+@keyframes pulse{from{transform:scale(.85);opacity:1}to{transform:scale(1.25);opacity:0}}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.choice{min-height:64px;border-radius:16px;border:3px solid var(--ink);background:var(--paper);box-shadow:var(--shadow);font-weight:900;font-size:1.25rem;padding:8px 10px;transition:transform .08s,background .15s;word-break:break-word}
+.choice:active{transform:translateY(4px);box-shadow:0 0 0 var(--ink)}
+.choice.en{font-family:var(--font-display);font-size:1.35rem;letter-spacing:.02em}
+.choice.ok{background:var(--mint);color:#fff}
+.choice.bad{background:var(--coral);color:#fff}
+.choice.dim{opacity:.45}
+.reveal{font-weight:900;font-size:1.15rem;min-height:1.5em}
+.reveal b{font-family:var(--font-display);font-size:1.5rem;color:var(--blue2);letter-spacing:.02em}
+.combo{font-family:var(--font-display);color:var(--coral);font-size:1.3rem;animation:pop .4s}
+@keyframes pop{from{transform:scale(.4)}60%{transform:scale(1.25)}to{transform:scale(1)}}
+.hearts{display:flex;gap:4px;font-size:1.3rem}
+.hearts span.off{opacity:.25;filter:grayscale(1)}
+
+/* lobby */
+.hero-card{display:flex;gap:14px;align-items:center}
+.hero-card canvas{width:110px;height:146px;flex:none}
+.rank-badge{width:64px;height:72px;flex:none;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:1.6rem;color:#fff;border:3px solid var(--ink);
+  clip-path:polygon(50% 0,100% 15%,100% 60%,50% 100%,0 60%,0 15%);background:var(--tier,#c47a3a);text-shadow:0 2px 0 rgba(0,0,0,.35)}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mode{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;min-height:110px;padding:12px}
+.mode .ico{font-size:1.8rem;line-height:1}
+.mode b{font-size:1.05rem}
+.mode small{font-weight:700;color:rgba(255,255,255,.9);font-size:.8rem;line-height:1.3}
+.mode.paper small{color:var(--ink2)}
+.patch{font-size:.92rem}
+.patch ul{margin:6px 0 0;padding-left:18px}
+.patch li{margin:2px 0}
+.wordgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.wordchip{background:var(--paper2);border:3px solid var(--ink);border-radius:12px;padding:6px 10px;display:flex;justify-content:space-between;align-items:center;gap:6px;font-weight:900}
+.wordchip .en{font-family:var(--font-display);font-size:1.05rem;letter-spacing:.02em}
+.wordchip .zh{font-size:.9rem;color:var(--ink2)}
+
+/* dex */
+.dex-item{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:10px 12px}
+.dex-item .en{font-family:var(--font-display);font-size:1.4rem;letter-spacing:.02em}
+.dex-item .zh{font-weight:900;color:var(--ink2)}
+.dex-item .sent{grid-column:1/-1;font-size:.92rem;color:var(--ink2);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.dex-item .sent i{font-style:normal;font-weight:700;color:var(--ink)}
+.stars{color:var(--sun2);letter-spacing:1px;font-size:1rem}
+.mini{min-height:36px;padding:4px 10px;font-size:.9rem;border-radius:10px}
+
+/* shop */
+.skins{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.skin{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px;text-align:center}
+.skin canvas{width:78px;height:104px}
+.skin.equipped{border-color:var(--mint);box-shadow:0 4px 0 var(--mint2)}
+.skin b{font-size:.95rem}
+
+/* obby */
+.obby-stage{position:relative;height:300px;border:3px solid var(--ink);border-radius:18px;overflow:hidden;background:linear-gradient(180deg,#ffd9a8 0%,#ffb0b0 50%,#8fd3ff 100%);box-shadow:var(--shadow)}
+.obby-stage .lava{position:absolute;left:0;right:0;bottom:0;height:46px;background:repeating-linear-gradient(90deg,#ff7b3d 0 30px,#ff9d2e 30px 60px);border-top:3px solid var(--ink);opacity:.95}
+.plat{position:absolute;width:28%;height:46px;border:3px solid var(--ink);border-radius:10px;background:#7ed957;box-shadow:inset 0 -12px 0 #4fae3a,0 4px 0 var(--ink);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.1rem;transition:transform .35s,opacity .35s;color:var(--ink)}
+.plat.start{background:#c9d6e3;box-shadow:inset 0 -12px 0 #93a3b5,0 4px 0 var(--ink)}
+.plat.crumble{transform:translateY(90px) rotate(8deg);opacity:0}
+.plat.glow{background:#ffe17a;box-shadow:inset 0 -12px 0 #e6b800,0 4px 0 var(--ink)}
+#obbyHero{position:absolute;width:72px;height:96px;left:50%;transform:translateX(-50%);transition:left .45s cubic-bezier(.3,1.4,.5,1),top .45s cubic-bezier(.3,1.4,.5,1);z-index:3}
+#obbyHero.fall{transition:top .7s cubic-bezier(.5,0,1,1),transform .7s;transform:translateX(-50%) rotate(140deg)}
+.obby-choices{display:flex;gap:8px}
+.obby-choices .choice{flex:1;min-height:56px;font-size:1.15rem}
+
+/* boss */
+.boss-wrap{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px}
+.boss-wrap canvas{width:170px;height:170px}
+.sentence-box{font-size:1.1rem;font-weight:700;line-height:1.5}
+.sentence-box .en{font-family:var(--font-display);font-size:1.3rem;letter-spacing:.01em}
+.sentence-box .zh{color:var(--ink2)}
+
+/* result */
+.result-stars{font-size:2.6rem;letter-spacing:4px}
+.result-stars span{display:inline-block;animation:pop .5s backwards}
+.result-stars span:nth-child(2){animation-delay:.2s}.result-stars span:nth-child(3){animation-delay:.4s}
+.big-num{font-family:var(--font-display);font-size:2rem;color:var(--blue2)}
+.miss-list{display:flex;flex-direction:column;gap:6px}
+.toast{position:fixed;left:50%;top:14%;transform:translateX(-50%);background:var(--ink);color:#fff;border-radius:14px;padding:10px 16px;font-weight:900;z-index:50;animation:toastIn .3s;border:3px solid #fff;box-shadow:0 4px 0 rgba(0,0,0,.3);max-width:90vw;text-align:center}
+@keyframes toastIn{from{transform:translate(-50%,-20px);opacity:0}to{transform:translate(-50%,0);opacity:1}}
+.banner{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:40;pointer-events:none}
+.banner div{font-family:var(--font-display);font-size:clamp(2.4rem,12vw,4.5rem);color:#fff;text-shadow:0 6px 0 var(--ink),-3px -3px 0 var(--ink),3px -3px 0 var(--ink),-3px 3px 0 var(--ink),3px 3px 0 var(--ink);animation:bannerIn .9s forwards}
+@keyframes bannerIn{0%{transform:scale(.3) rotate(-8deg);opacity:0}30%{transform:scale(1.15) rotate(2deg);opacity:1}80%{transform:scale(1);opacity:1}100%{transform:scale(1.1);opacity:0}}
+.confetti{position:fixed;top:-10px;width:10px;height:14px;z-index:45;animation:confetti linear forwards;pointer-events:none}
+@keyframes confetti{to{transform:translateY(110vh) rotate(720deg)}}
+
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+@media (max-width:460px){.arena canvas.actor{width:78px;height:104px}.tower{width:52px;height:96px}.tower .blk{width:42px;height:24px}.tower .blk.top{width:50px;height:22px}.arena .side .row{gap:2px}}
+@media (max-width:380px){.choices{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="cloud" style="top:6%;animation-duration:70s;animation-delay:-20s"></div>
+<div class="cloud" style="top:20%;animation-duration:95s;animation-delay:-60s;transform:scale(.7)"></div>
+<div class="cloud" style="top:38%;animation-duration:80s;animation-delay:-5s;transform:scale(.55)"></div>
+
+<div id="app">
+
+<!-- START -->
+<section id="scr-start" class="screen">
+  <span class="season-tag">第四關 · SEASON 4</span>
+  <div class="logo">ECHO ARENA<small>回聲競技場 · 英語聽力對戰</small></div>
+  <div class="heroes-row" id="startHeroes"></div>
+  <div class="panel center stack" style="width:min(360px,92vw)">
+    <div id="loadText" class="eyebrow">載入真人語音 0%</div>
+    <div class="loadbar"><i id="loadBar"></i></div>
+    <button id="btnEnter" class="btn primary" disabled>▶ 進入競技場</button>
+    <div style="font-size:.85rem;color:var(--ink2);font-weight:700">聽英文 → 選答案 → 推倒敵方塔！</div>
+  </div>
+</section>
+
+<!-- LOBBY -->
+<section id="scr-lobby" class="screen hidden">
+  <div class="topbar">
+    <span class="chip">🏟️ 第四關</span>
+    <span class="chip"><span class="coin"></span><span id="lobbyCoins" class="num">0</span></span>
+    <span class="grow"></span>
+    <button class="btn small" id="btnVoice" title="切換配音">🎙️ 女聲</button>
+    <button class="btn small" id="btnMute">🔊</button>
+  </div>
+
+  <div class="panel hero-card">
+    <canvas id="lobbyHero" width="220" height="292"></canvas>
+    <div class="grow stack" style="gap:6px">
+      <div class="eyebrow">我的英雄</div>
+      <h2 id="lobbyHeroName">方塊騎士</h2>
+      <div class="row" style="gap:8px">
+        <div class="rank-badge" id="rankBadge">B</div>
+        <div class="grow">
+          <div style="font-weight:900" id="rankName">青銅</div>
+          <div class="bar lp"><i id="lpBar"></i></div>
+          <div style="font-size:.8rem;color:var(--ink2);font-weight:700" id="lpText">0 LP</div>
+        </div>
+      </div>
+      <div class="row">
+        <button class="btn small sun" id="btnShop">🛍️ 造型商店</button>
+        <button class="btn small" id="btnDex">📖 單字圖鑑</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modes">
+    <button class="btn primary mode" data-mode="tower"><span class="ico">🏰</span><b>推塔對戰</b><small>聽單字，選中文意思。答對就攻擊敵方塔！</small></button>
+    <button class="btn violet mode" data-mode="spell"><span class="ico">🔤</span><b>聽寫高塔</b><small>聽單字，選出正確的英文拼字。</small></button>
+    <button class="btn sun mode paper" data-mode="obby"><span class="ico">🏃</span><b>跑酷闖關</b><small>聽指令跳到正確的平台，別掉進岩漿！</small></button>
+    <button class="btn coral mode" data-mode="boss"><span class="ico">👾</span><b>BOSS 句子戰</b><small>聽完整句子，找出裡面的單字。</small></button>
+  </div>
+
+  <div class="panel soft patch">
+    <div class="row between">
+      <h3>📋 版本 4.0 更新說明</h3>
+      <span class="tag">每兩週更新</span>
+    </div>
+    <ul>
+      <li>新增 <b>20 個單字技能</b>（第四關全部單字）</li>
+      <li>新增 <b>BOSS 句子戰</b>：聽完整句子找單字</li>
+      <li>牌位系統：青銅 → 白銀 → 黃金 → 白金 → 鑽石 → 大師 → 王者</li>
+      <li>平衡調整：連擊 3 次傷害提升為 1.5 倍</li>
+    </ul>
+    <div class="wordgrid" id="patchWords" style="margin-top:10px"></div>
+  </div>
+</section>
+
+<!-- TOWER / SPELL BATTLE -->
+<section id="scr-battle" class="screen hidden">
+  <div class="topbar">
+    <button class="btn small" id="btnBattleQuit">✕ 離開</button>
+    <span class="chip" id="battleRound">第 1 / 12 回合</span>
+    <span class="grow"></span>
+    <span class="chip"><span class="coin"></span><span id="battleCoins" class="num">0</span></span>
+  </div>
+  <div class="arena" id="arena">
+    <div class="ground"></div>
+    <div class="side left">
+      <div class="tower-hp"><div class="bar hp"><i id="myTowerBar"></i></div></div>
+      <div class="row" style="gap:8px;align-items:flex-end">
+        <div class="tower" id="myTower"><div class="blk top"></div><div class="blk"></div><div class="blk"></div></div>
+        <canvas class="actor" id="battleHero" width="192" height="256"></canvas>
+      </div>
+      <span class="tag">我方</span>
+    </div>
+    <div class="side right">
+      <div class="tower-hp"><div class="bar hp"><i id="enemyTowerBar"></i></div></div>
+      <div class="row" style="gap:8px;align-items:flex-end;justify-content:flex-end">
+        <canvas class="actor" id="battleEnemy" width="192" height="256"></canvas>
+        <div class="tower enemy" id="enemyTower"><div class="blk top"></div><div class="blk"></div><div class="blk"></div></div>
+      </div>
+      <span class="tag">噪音軍團</span>
+    </div>
+  </div>
+  <div class="panel qcard stack">
+    <div class="row" style="justify-content:center;gap:14px">
+      <button class="listen-btn" id="btnListen" aria-label="播放">🔊</button>
+      <div class="stack" style="gap:6px;align-items:flex-start">
+        <button class="btn small" id="btnSlow">🐢 慢速</button>
+        <div id="comboBox" class="combo" style="min-height:1.4em"></div>
+      </div>
+    </div>
+    <div class="bar time"><i id="timeBar"></i></div>
+    <div class="reveal" id="battleReveal">聽聽看，這是哪個單字？</div>
+    <div class="choices" id="battleChoices"></div>
+  </div>
+</section>
+
+<!-- OBBY -->
+<section id="scr-obby" class="screen hidden">
+  <div class="topbar">
+    <button class="btn small" id="btnObbyQuit">✕ 離開</button>
+    <span class="chip" id="obbyStep">平台 1 / 15</span>
+    <span class="grow"></span>
+    <span class="hearts" id="obbyHearts"></span>
+  </div>
+  <div class="obby-stage" id="obbyStage">
+    <div class="plat start" id="platStart" style="left:36%;top:100px">起點</div>
+    <div class="plat" id="plat0" style="left:4%;top:200px"></div>
+    <div class="plat" id="plat1" style="left:36%;top:200px"></div>
+    <div class="plat" id="plat2" style="left:68%;top:200px"></div>
+    <canvas id="obbyHero" width="144" height="192" style="top:9px"></canvas>
+    <div class="lava"></div>
+  </div>
+  <div class="panel qcard stack">
+    <div class="row" style="justify-content:center;gap:14px">
+      <button class="listen-btn" id="btnObbyListen" aria-label="播放">🔊</button>
+      <button class="btn small" id="btnObbySlow">🐢 慢速</button>
+    </div>
+    <div class="reveal" id="obbyReveal">聽到單字後，點正確的平台跳過去！</div>
+    <div class="obby-choices" id="obbyChoices"></div>
+  </div>
+</section>
+
+<!-- BOSS -->
+<section id="scr-boss" class="screen hidden">
+  <div class="topbar">
+    <button class="btn small" id="btnBossQuit">✕ 離開</button>
+    <span class="chip" id="bossRound">句子 1 / 10</span>
+    <span class="grow"></span>
+    <span class="hearts" id="bossHearts"></span>
+  </div>
+  <div class="arena" id="bossArena" style="min-height:250px">
+    <div class="ground"></div>
+    <div class="boss-wrap" style="position:absolute;inset:0;justify-content:flex-end;padding-bottom:16px">
+      <div style="width:70%;max-width:260px"><div class="bar hp"><i id="bossBar"></i></div></div>
+      <canvas id="bossCanvas" width="340" height="340"></canvas>
+      <span class="tag">噪音魔王 · 10 HP</span>
+    </div>
+  </div>
+  <div class="panel qcard stack">
+    <div class="row" style="justify-content:center;gap:14px">
+      <button class="listen-btn" id="btnBossListen" aria-label="播放句子">🔊</button>
+      <div style="font-weight:900;text-align:left">聽整個句子，<br>裡面有哪個單字？</div>
+    </div>
+    <div class="sentence-box" id="bossSentence" style="min-height:3em"></div>
+    <div class="choices" id="bossChoices"></div>
+  </div>
+</section>
+
+<!-- RESULT -->
+<section id="scr-result" class="screen hidden">
+  <div class="panel center stack">
+    <div class="eyebrow" id="resultMode">推塔對戰</div>
+    <h1 id="resultTitle" style="color:var(--blue2)">VICTORY</h1>
+    <div class="result-stars" id="resultStars"></div>
+    <div class="row" style="justify-content:center;gap:18px">
+      <div><div class="eyebrow">答對</div><div class="big-num num" id="resCorrect">0/0</div></div>
+      <div><div class="eyebrow">LP</div><div class="big-num num" id="resLP">+0</div></div>
+      <div><div class="eyebrow">金幣</div><div class="big-num num" id="resCoins">+0</div></div>
+    </div>
+    <div id="resRank" style="font-weight:900;color:var(--violet2)"></div>
+  </div>
+  <div class="panel stack" id="resMissPanel">
+    <h3>📚 再聽一次這些單字</h3>
+    <div class="miss-list" id="resMiss"></div>
+  </div>
+  <div class="row">
+    <button class="btn primary grow" id="btnReplay">🔁 再玩一次</button>
+    <button class="btn grow" id="btnResultHome">🏠 回大廳</button>
+  </div>
+</section>
+
+<!-- DEX -->
+<section id="scr-dex" class="screen hidden">
+  <div class="topbar">
+    <button class="btn small" id="btnDexBack">← 大廳</button>
+    <h2>單字圖鑑 · 第四關</h2>
+  </div>
+  <div style="font-size:.9rem;color:var(--ink2);font-weight:700">點 🔊 聽女聲、🎙️ 聽男聲、🐢 慢速、💬 聽例句。星星是你的熟練度。</div>
+  <div class="stack" id="dexList"></div>
+</section>
+
+<!-- SHOP -->
+<section id="scr-shop" class="screen hidden">
+  <div class="topbar">
+    <button class="btn small" id="btnShopBack">← 大廳</button>
+    <h2>造型商店</h2>
+    <span class="grow"></span>
+    <span class="chip"><span class="coin"></span><span id="shopCoins" class="num">0</span></span>
+  </div>
+  <div style="font-size:.9rem;color:var(--ink2);font-weight:700">答對一題 +1 金幣，獲勝再加獎金。用金幣解鎖造型，點「裝備」換上它。</div>
+  <div class="skins" id="skinList"></div>
+</section>
+
+</div>
+
+<script>
+/* ===================== DATA ===================== */
+const WORDS = [
+ {en:"reuse",zh:"再利用",sen:"We can reuse this bottle.",szh:"我們可以再利用這個瓶子。"},
+ {en:"rest",zh:"休息",sen:"Let's rest for a minute.",szh:"我們休息一分鐘吧。"},
+ {en:"repeat",zh:"重複",sen:"Please repeat after me.",szh:"請跟著我重複一次。"},
+ {en:"run",zh:"跑",sen:"Don't run in the hallway.",szh:"走廊上不要跑。"},
+ {en:"put",zh:"放",sen:"Put your books in the bag.",szh:"把你的書放進書包。"},
+ {en:"prepare",zh:"準備",sen:"Let's prepare for the test.",szh:"我們來準備考試吧。"},
+ {en:"pick",zh:"挑選",sen:"Pick your favorite color.",szh:"挑選你最喜歡的顏色。"},
+ {en:"pay",zh:"付",sen:"You can pay at the counter.",szh:"你可以在櫃台付錢。"},
+ {en:"write",zh:"寫",sen:"Write your name on the paper.",szh:"把你的名字寫在紙上。"},
+ {en:"clean",zh:"清潔",sen:"Let's clean the classroom.",szh:"我們來清潔教室吧。"},
+ {en:"find",zh:"找到",sen:"I can't find my pencil.",szh:"我找不到我的鉛筆。"},
+ {en:"hurt",zh:"傷害",sen:"Did you hurt your knee?",szh:"你的膝蓋受傷了嗎？"},
+ {en:"help",zh:"幫助",sen:"Can you help me, please?",szh:"可以請你幫助我嗎？"},
+ {en:"miss",zh:"想念",sen:"I miss my grandma.",szh:"我想念我的奶奶。"},
+ {en:"need",zh:"需要",sen:"I need a new pen.",szh:"我需要一枝新的筆。"},
+ {en:"want to",zh:"想要",sen:"I want to play basketball.",szh:"我想要打籃球。"},
+ {en:"try",zh:"嘗試",sen:"Let's try again.",szh:"我們再試一次吧。"},
+ {en:"have to",zh:"必須",sen:"I have to go home now.",szh:"我現在必須回家。"},
+ {en:"wash hands",zh:"洗手",sen:"Wash your hands before lunch.",szh:"午餐前要洗手。"},
+ {en:"wear a mask",zh:"戴口罩",sen:"Please wear a mask on the bus.",szh:"在公車上請戴口罩。"},
+];
+const ANN_TEXT = {welcome:"Welcome to Echo Arena!",listen:"Listen carefully.",correct:"Correct!",excellent:"Excellent!",perfect:"Perfect!",goodjob:"Good job!",nicetry:"Nice try.",tryagain:"Try again.",combo:"Combo!",victory:"Victory!",defeat:"Defeat. Let's practice more.",levelup:"Level up!",boss:"Boss battle!",letsgo:"Let's go!",watchout:"Watch out!",ready:"Ready?",rankup:"Rank up!"};
+const TIERS = [
+ {name:"青銅",short:"B",lp:0,color:"#c47a3a"},{name:"白銀",short:"S",lp:100,color:"#9fb0c2"},{name:"黃金",short:"G",lp:220,color:"#f2b705"},
+ {name:"白金",short:"P",lp:360,color:"#3fc9bd"},{name:"鑽石",short:"D",lp:520,color:"#5e9dff"},{name:"大師",short:"M",lp:700,color:"#a86bff"},{name:"王者",short:"K",lp:900,color:"#ff4f81"}];
+const SKINS = [
+ {id:"knight",name:"方塊騎士",price:0,body:"#e63946",limb:"#b71f2b",head:"#f7cfa3",hat:"helmet",hatColor:"#8d99ab",face:"smile",weapon:"sword"},
+ {id:"mage",name:"回聲法師",price:0,body:"#7b5cff",limb:"#5a3fd1",head:"#f7cfa3",hat:"wizard",hatColor:"#5a3fd1",face:"smile",weapon:"staff"},
+ {id:"ninja",name:"閃電忍者",price:0,body:"#273043",limb:"#1a2130",head:"#f1c99a",hat:"band",hatColor:"#2ecf8f",face:"cool",weapon:"none"},
+ {id:"panda",name:"熊貓忍者",price:25,body:"#ffffff",limb:"#1f2b3d",head:"#ffffff",hat:"panda",hatColor:"#1f2b3d",face:"panda",weapon:"none"},
+ {id:"gold",name:"黃金騎士",price:30,body:"#ffc531",limb:"#e5a400",head:"#f7cfa3",hat:"helmet",hatColor:"#ffd86b",face:"smile",weapon:"sword"},
+ {id:"rainbow",name:"彩虹法師",price:35,body:"rainbow",limb:"#ff5f57",head:"#f7cfa3",hat:"wizard",hatColor:"#ff8fd0",face:"smile",weapon:"staff"},
+ {id:"astro",name:"太空人",price:40,body:"#f2f7fb",limb:"#c9d6e3",head:"#f7cfa3",hat:"astro",hatColor:"#2f86ff",face:"smile",weapon:"none"},
+ {id:"king",name:"回聲國王",price:50,body:"#c2185b",limb:"#8e1140",head:"#f7cfa3",hat:"crown",hatColor:"#ffc531",face:"smile",weapon:"sword"},
+];
+
+/* ===================== SAVE ===================== */
+const SAVE_KEY = "echoArenaSave4";
+let S = {lp:0,coins:0,skin:"knight",owned:["knight","mage","ninja"],mastery:{},voice:"f",muted:false,wins:0};
+try{const raw=localStorage.getItem(SAVE_KEY); if(raw){const j=JSON.parse(raw); S={...S,...j}; if(!S.owned.includes(S.skin)) S.skin="knight";}}catch(e){}
+function save(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(S))}catch(e){}}
+function mastery(i){return S.mastery[i]||{c:0,a:0}}
+function addMastery(i,ok){const m=mastery(i); m.a++; if(ok)m.c++; S.mastery[i]=m;}
+function starsFor(i){const m=mastery(i); if(m.c>=10&&m.c/m.a>=.8)return 3; if(m.c>=5)return 2; if(m.c>=2)return 1; return 0}
+function tierOf(lp){let t=TIERS[0]; for(const x of TIERS) if(lp>=x.lp) t=x; return t}
+function nextTier(lp){for(const x of TIERS) if(x.lp>lp) return x; return null}
+
+/* ===================== AUDIO ===================== */
+const Audio_ = {ctx:null,buf:{},ready:false,failed:false,current:null};
+function ensureCtx(){ if(!Audio_.ctx){ const C=window.AudioContext||window.webkitAudioContext; Audio_.ctx=new C(); } if(Audio_.ctx.state==="suspended") Audio_.ctx.resume().catch(()=>{}); return Audio_.ctx; }
+function b64ToBuf(b64){const bin=atob(b64);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u.buffer}
+async function loadVoices(onProgress){
+  try{
+    const r = await fetch("voices.json"); if(!r.ok) throw new Error("http "+r.status);
+    const j = await r.json(); const keys=Object.keys(j); const ctx=ensureCtx(); let done=0;
+    for(const k of keys){
+      try{ Audio_.buf[k] = await new Promise((res,rej)=>{ const p=ctx.decodeAudioData(b64ToBuf(j[k]),res,rej); if(p&&p.then)p.then(res,rej); }); }catch(e){}
+      done++; if(done%6===0||done===keys.length) onProgress(done/keys.length);
+    }
+    Audio_.ready=true;
+  }catch(e){ Audio_.failed=true; onProgress(1); }
+}
+function voiceKey(i,slow){ if(slow) return "w"+i+"s"; const v = S.voice==="r" ? (Math.random()<.5?"f":"m") : S.voice; return "w"+i+v; }
+function speakFallback(text,rate){ try{ if(!("speechSynthesis" in window)) return 0; speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang="en-US"; u.rate=rate||1; const vs=speechSynthesis.getVoices().filter(v=>v.lang&&v.lang.startsWith("en")); if(vs.length) u.voice=vs.find(v=>/Samantha|Google US|Natural|Aria|Jenny/i.test(v.name))||vs[0]; speechSynthesis.speak(u); }catch(e){} return 1.2; }
+function playKey(key, fallbackText, rate){
+  if(S.muted) return 0.8;
+  const b=Audio_.buf[key];
+  if(!b){ return speakFallback(fallbackText, rate); }
+  const ctx=ensureCtx(); if(Audio_.current){ try{Audio_.current.stop()}catch(e){} }
+  const src=ctx.createBufferSource(); src.buffer=b; const g=ctx.createGain(); g.gain.value=1; src.connect(g).connect(ctx.destination); src.start(); Audio_.current=src; return b.duration;
+}
+function sayWord(i,slow){ return playKey(voiceKey(i,slow), WORDS[i].en, slow?0.6:1); }
+function saySentence(i){ return playKey("s"+i, WORDS[i].sen, 0.95); }
+function announce(key,delay){ const f=()=>playKey("a_"+key, ANN_TEXT[key], 1); if(delay) setTimeout(f,delay); else f(); }
+
+/* SFX synthesized */
+function tone(freq,dur,type,vol,when,slide){ if(S.muted)return; const ctx=ensureCtx(); const o=ctx.createOscillator(), g=ctx.createGain(); o.type=type||"square"; const t=ctx.currentTime+(when||0); o.frequency.setValueAtTime(freq,t); if(slide) o.frequency.exponentialRampToValueAtTime(slide,t+dur); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol||.15,t+.01); g.gain.exponentialRampToValueAtTime(0.0001,t+dur); o.connect(g).connect(ctx.destination); o.start(t); o.stop(t+dur+.02); }
+const SFX = {
+  correct(){ tone(660,.09,"square",.12); tone(880,.12,"square",.12,.09); tone(1320,.18,"triangle",.12,.2); },
+  wrong(){ tone(220,.18,"sawtooth",.12); tone(160,.25,"sawtooth",.12,.12); },
+  hit(){ tone(140,.12,"square",.18,0,60); tone(90,.18,"sawtooth",.12,.03,40); },
+  jump(){ tone(300,.18,"square",.1,0,720); },
+  fall(){ tone(600,.5,"sawtooth",.1,0,80); },
+  coin(){ tone(1046,.07,"square",.1); tone(1568,.16,"square",.1,.07); },
+  tick(){ tone(900,.04,"square",.05); },
+  fanfare(){ [523,659,784,1046].forEach((f,i)=>tone(f,.18,"square",.12,i*.12)); tone(1318,.5,"triangle",.14,.5); },
+  sad(){ [392,349,311,261].forEach((f,i)=>tone(f,.25,"triangle",.12,i*.2)); },
+  whoosh(){ tone(200,.2,"triangle",.08,0,1200); },
+  boom(){ tone(80,.5,"sawtooth",.2,0,30); tone(60,.6,"square",.15,.05,20); },
+};
+
+/* ===================== BLOCKY RENDERER ===================== */
+function shade(hex,amt){ if(hex==="rainbow") return amt<0?"#c23a8a":"#ff9ad5"; const n=parseInt(hex.slice(1),16); let r=(n>>16)+amt,g=((n>>8)&255)+amt,b=(n&255)+amt; r=Math.max(0,Math.min(255,r));g=Math.max(0,Math.min(255,g));b=Math.max(0,Math.min(255,b)); return "#"+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1); }
+function block(c,x,y,w,h,col,r){ r=r||6;
+  c.fillStyle="#1f2b3d"; rr(c,x-3,y-3,w+6,h+6,r+2); c.fill();
+  if(col==="rainbow"){ const g=c.createLinearGradient(x,y,x,y+h); ["#ff5f57","#ffc531","#2ecf8f","#2f86ff","#8a5cff"].forEach((k,i)=>g.addColorStop(i/4,k)); c.fillStyle=g; } else c.fillStyle=col;
+  rr(c,x,y,w,h,r); c.fill();
+  c.fillStyle=shade(col,-38); rr(c,x+w-Math.max(6,w*.18),y,Math.max(6,w*.18),h,r); c.fill();
+  c.fillStyle=shade(col,40); rr(c,x,y,w-Math.max(6,w*.18),Math.max(4,h*.09),r); c.fill();
+}
+function rr(c,x,y,w,h,r){ c.beginPath(); c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r); c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath(); }
+function drawHero(c,W,H,skin,pose,t){
+  // reference frame 120x160
+  c.save(); c.clearRect(0,0,W,H); c.scale(W/120,H/160);
+  c.translate(60,34); c.scale(.8,.8); c.translate(-60,0); // leave headroom for tall hats
+  const bob = pose==="idle" ? Math.sin(t*3)*2 : 0;
+  let rot=0, dy=bob, flash=false;
+  if(pose==="attack") rot=-0.22; if(pose==="hurt"){rot=0.25; flash=true;} if(pose==="jump") dy=-8; if(pose==="fall") rot=0.9;
+  c.translate(60,160); c.rotate(rot); c.translate(-60,-160+dy);
+  // legs
+  const legSpread = pose==="jump"?10:0;
+  block(c,38-legSpread,112,20,42,skin.limb,5); block(c,62+legSpread,112,20,42,skin.limb,5);
+  // arms
+  if(pose==="cheer"){ block(c,18,34,16,50,skin.limb,5); block(c,86,34,16,50,skin.limb,5); }
+  else if(pose==="attack"){ block(c,20,62,16,48,skin.limb,5); c.save(); c.translate(94,70); c.rotate(-1.1); block(c,-8,-10,16,48,skin.limb,5); if(skin.weapon==="sword"){ block(c,-4,-62,8,56,"#dfe6ef",3); block(c,-14,-10,28,8,"#ffc531",3);} else if(skin.weapon==="staff"){ block(c,-4,-70,8,64,"#8d6e4a",3); c.fillStyle="#1f2b3d"; c.beginPath(); c.arc(0,-74,12,0,7); c.fill(); c.fillStyle=skin.hat==="wizard"?"#5dff9f":"#ffe17a"; c.beginPath(); c.arc(0,-74,9,0,7); c.fill(); } c.restore(); }
+  else if(pose==="jump"){ block(c,14,52,16,48,skin.limb,5); block(c,90,52,16,48,skin.limb,5); }
+  else { block(c,20,62,16,50,skin.limb,5); block(c,84,62,16,50,skin.limb,5); if(skin.weapon==="sword"){ block(c,88,22,8,46,"#dfe6ef",3); block(c,78,62,28,8,"#ffc531",3);} if(skin.weapon==="staff"){ block(c,88,14,8,56,"#8d6e4a",3); c.fillStyle="#1f2b3d"; c.beginPath(); c.arc(92,10,11,0,7); c.fill(); c.fillStyle=skin.id==="rainbow"?"#ffe17a":"#5dff9f"; c.beginPath(); c.arc(92,10,8,0,7); c.fill(); } }
+  // torso
+  block(c,38,60,44,54,skin.body,8);
+  if(skin.id==="astro"){ c.fillStyle="#2f86ff"; rr(c,46,72,28,16,4); c.fill(); c.fillStyle="#ff5f57"; c.fillRect(50,76,6,6); c.fillStyle="#2ecf8f"; c.fillRect(60,76,6,6);}
+  if(skin.id==="king"){ c.fillStyle="#ffc531"; rr(c,52,66,16,34,3); c.fill(); }
+  // head
+  block(c,36,10,48,48,skin.head,10);
+  // face
+  const eyeY=30;
+  if(skin.face==="cool"){ c.fillStyle="#1f2b3d"; rr(c,44,eyeY-4,30,10,3); c.fill(); c.fillStyle="#5dd3ff"; c.fillRect(46,eyeY-2,10,6); c.fillRect(62,eyeY-2,10,6); }
+  else if(skin.face==="panda"){ c.fillStyle="#1f2b3d"; c.beginPath(); c.ellipse(49,eyeY+2,8,9,0,0,7); c.ellipse(71,eyeY+2,8,9,0,0,7); c.fill(); c.fillStyle="#fff"; c.beginPath(); c.arc(50,eyeY+2,3,0,7); c.arc(72,eyeY+2,3,0,7); c.fill(); }
+  else { c.fillStyle="#fff"; rr(c,44,eyeY-3,11,13,3); c.fill(); rr(c,65,eyeY-3,11,13,3); c.fill(); c.fillStyle="#1f2b3d"; const px= pose==="attack"?3:1; c.fillRect(47+px,eyeY+1,6,7); c.fillRect(68+px,eyeY+1,6,7); }
+  c.strokeStyle="#1f2b3d"; c.lineWidth=3; c.lineCap="round"; c.beginPath();
+  if(pose==="hurt"){ c.moveTo(54,48); c.lineTo(66,48); } else if(pose==="cheer"||pose==="attack"){ c.arc(60,44,8,0.15,Math.PI-0.15); } else { c.arc(60,43,6,0.2,Math.PI-0.2); }
+  c.stroke();
+  // hats
+  const hc=skin.hatColor;
+  if(skin.hat==="helmet"){ block(c,32,2,56,22,hc,8); c.fillStyle="#1f2b3d"; c.fillRect(40,16,40,4); c.fillStyle="#ff5f57"; rr(c,54,-10,12,16,4); c.fill(); }
+  if(skin.hat==="wizard"){ c.fillStyle="#1f2b3d"; c.beginPath(); c.moveTo(26,16); c.lineTo(94,16); c.lineTo(60,-40); c.closePath(); c.fill(); c.fillStyle=hc; c.beginPath(); c.moveTo(31,13); c.lineTo(89,13); c.lineTo(60,-33); c.closePath(); c.fill(); block(c,26,8,68,10,hc,4); c.fillStyle="#ffe17a"; c.beginPath(); c.arc(60,-12,5,0,7); c.fill(); }
+  if(skin.hat==="band"){ block(c,34,18,52,10,hc,3); c.fillStyle=hc; c.fillRect(84,20,18,5); c.fillRect(86,26,14,5); }
+  if(skin.hat==="crown"){ c.fillStyle="#1f2b3d"; c.beginPath(); c.moveTo(36,14); c.lineTo(84,14); c.lineTo(84,-12); c.lineTo(72,0); c.lineTo(60,-16); c.lineTo(48,0); c.lineTo(36,-12); c.closePath(); c.fill(); c.fillStyle=hc; c.beginPath(); c.moveTo(39,11); c.lineTo(81,11); c.lineTo(81,-6); c.lineTo(72,4); c.lineTo(60,-10); c.lineTo(48,4); c.lineTo(39,-6); c.closePath(); c.fill(); c.fillStyle="#ff5f57"; c.beginPath(); c.arc(60,4,3,0,7); c.fill(); }
+  if(skin.hat==="panda"){ c.fillStyle="#1f2b3d"; c.beginPath(); c.arc(40,12,10,0,7); c.arc(80,12,10,0,7); c.fill(); }
+  if(skin.hat==="astro"){ c.fillStyle="rgba(160,220,255,.35)"; c.strokeStyle="#1f2b3d"; c.lineWidth=3; c.beginPath(); c.arc(60,34,32,0,7); c.fill(); c.stroke(); c.fillStyle="rgba(255,255,255,.5)"; c.beginPath(); c.arc(44,22,6,0,7); c.fill(); block(c,56,-12,8,14,"#8d99ab",3); c.fillStyle="#ff5f57"; c.beginPath(); c.arc(60,-14,5,0,7); c.fill(); }
+  if(flash){ c.globalAlpha=.35; c.fillStyle="#ff5f57"; c.fillRect(-20,-60,160,240); c.globalAlpha=1; }
+  c.restore();
+}
+function drawMonster(c,W,H,pose,t,isBoss){
+  c.save(); c.clearRect(0,0,W,H); c.scale(W/120,H/160);
+  const bob=Math.sin(t*2.5)*3; let dx=0; if(pose==="hurt") dx=Math.sin(t*60)*4; if(pose==="attack") dx=-14;
+  c.translate(dx,bob);
+  const body = isBoss?"#5a3fd1":"#5f6b7d", body2=isBoss?"#8a5cff":"#8d99ab";
+  // legs
+  block(c,34,118,22,36,body,6); block(c,64,118,22,36,body,6);
+  // body big
+  block(c,22,46,76,76,body2,12);
+  // spikes
+  c.fillStyle="#1f2b3d"; for(let i=0;i<4;i++){ c.beginPath(); c.moveTo(30+i*18,46); c.lineTo(39+i*18,22); c.lineTo(48+i*18,46); c.fill(); }
+  c.fillStyle=isBoss?"#ff5f57":"#ffc531"; for(let i=0;i<4;i++){ c.beginPath(); c.moveTo(33+i*18,44); c.lineTo(39+i*18,28); c.lineTo(45+i*18,44); c.fill(); }
+  // eyes
+  const eyes = isBoss?3:2;
+  c.fillStyle="#fff"; if(eyes===3){ rr(c,32,64,18,18,5); c.fill(); rr(c,70,64,18,18,5); c.fill(); rr(c,51,58,18,18,5); c.fill(); } else { rr(c,34,66,20,20,5); c.fill(); rr(c,66,66,20,20,5); c.fill(); }
+  c.fillStyle= pose==="hurt"?"#ff5f57":"#1f2b3d"; if(eyes===3){ c.fillRect(38,70,8,8); c.fillRect(76,70,8,8); c.fillRect(57,64,8,8);} else { c.fillRect(40,72,9,9); c.fillRect(72,72,9,9); }
+  // brows
+  c.strokeStyle="#1f2b3d"; c.lineWidth=4; c.beginPath(); c.moveTo(32,60); c.lineTo(54,66); c.moveTo(88,60); c.lineTo(66,66); c.stroke();
+  // mouth with teeth
+  c.fillStyle="#1f2b3d"; rr(c,38,94,44,16,5); c.fill(); c.fillStyle="#fff"; for(let i=0;i<4;i++) c.fillRect(42+i*10,94,6,7);
+  if(pose==="hurt"){ c.fillStyle="#fff"; c.font="bold 20px sans-serif"; c.fillText("!",96,40); }
+  // sound-wave aura
+  c.strokeStyle=isBoss?"rgba(138,92,255,.6)":"rgba(255,95,87,.5)"; c.lineWidth=3; for(let i=0;i<2;i++){ c.beginPath(); c.arc(60,84,70+i*12+Math.sin(t*4+i)*4,-.6,.6); c.stroke(); c.beginPath(); c.arc(60,84,70+i*12+Math.sin(t*4+i)*4,Math.PI-.6,Math.PI+.6); c.stroke(); }
+  c.restore();
+}
+const actors=[];
+function registerActor(canvas,opts){ const a={canvas,ctx:canvas.getContext("2d"),pose:"idle",until:0,...opts}; actors.push(a); return a; }
+function setPose(a,pose,ms){ a.pose=pose; a.until=performance.now()+(ms||600); }
+function skinById(id){ return SKINS.find(s=>s.id===id)||SKINS[0]; }
+function renderLoop(now){
+  const t=now/1000;
+  for(const a of actors){ if(!a.canvas.isConnected||a.canvas.closest(".hidden")) continue; const pose = a.until&&now>a.until ? (a.pose="idle") : a.pose;
+    if(a.type==="monster") drawMonster(a.ctx,a.canvas.width,a.canvas.height,pose,t,a.boss); else drawHero(a.ctx,a.canvas.width,a.canvas.height,a.skin||skinById(S.skin),pose,t+(a.phase||0)); }
+  requestAnimationFrame(renderLoop);
+}
+requestAnimationFrame(renderLoop);
+
+/* ===================== UI HELPERS ===================== */
+const $=id=>document.getElementById(id);
+function show(id){ document.querySelectorAll(".screen").forEach(s=>s.classList.add("hidden")); $(id).classList.remove("hidden"); $(id).scrollTop=0; }
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function distractors(i,n){ const w=WORDS[i].en[0]; const same=WORDS.map((x,k)=>k).filter(k=>k!==i&&WORDS[k].en[0]===w); const others=WORDS.map((x,k)=>k).filter(k=>k!==i&&WORDS[k].en[0]!==w); let pool=shuffle(same).slice(0,Math.min(same.length,Math.random()<.6?2:1)); pool=pool.concat(shuffle(others)); return pool.slice(0,n); }
+function toast(msg,ms){ const d=document.createElement("div"); d.className="toast"; d.textContent=msg; document.body.appendChild(d); setTimeout(()=>d.remove(),ms||1500); }
+function banner(text,color){ const b=document.createElement("div"); b.className="banner"; b.innerHTML="<div></div>"; b.firstChild.textContent=text; if(color) b.firstChild.style.color=color; document.body.appendChild(b); setTimeout(()=>b.remove(),1000); }
+function confetti(n){ const cols=["#ff5f57","#ffc531","#2ecf8f","#2f86ff","#8a5cff","#fff"]; for(let i=0;i<(n||60);i++){ const d=document.createElement("div"); d.className="confetti"; d.style.left=Math.random()*100+"vw"; d.style.background=cols[i%cols.length]; d.style.animationDuration=(1.6+Math.random()*1.4)+"s"; d.style.animationDelay=(Math.random()*.6)+"s"; d.style.transform="rotate("+Math.random()*360+"deg)"; document.body.appendChild(d); setTimeout(()=>d.remove(),3600); } }
+function floatText(container,text,x,y,color){ const d=document.createElement("div"); d.className="float-dmg"; d.textContent=text; d.style.left=x; d.style.top=y; if(color) d.style.color=color; container.appendChild(d); setTimeout(()=>d.remove(),900); }
+function sparks(container,x,y,color){ for(let i=0;i<10;i++){ const s=document.createElement("div"); s.className="spark"; s.style.left=x; s.style.top=y; s.style.background=color||"#ffc531"; s.style.setProperty("--dx",(Math.random()*120-60)+"px"); s.style.setProperty("--dy",(Math.random()*-90-10)+"px"); container.appendChild(s); setTimeout(()=>s.remove(),700); } }
+function renderHearts(el,n,max){ el.innerHTML=""; for(let i=0;i<max;i++){ const s=document.createElement("span"); s.textContent="❤️"; if(i>=n) s.className="off"; el.appendChild(s);} }
+function addCoins(n){ S.coins+=n; save(); document.querySelectorAll("#lobbyCoins,#battleCoins,#shopCoins").forEach(e=>e.textContent=S.coins); }
+
+/* ===================== START ===================== */
+(function initStart(){
+  const row=$("startHeroes"); ["knight","mage","ninja"].forEach((id,k)=>{ const cv=document.createElement("canvas"); cv.width=168; cv.height=224; row.appendChild(cv); registerActor(cv,{skin:skinById(id),phase:k*.7}); });
+  loadVoices(p=>{ $("loadBar").style.width=Math.round(p*100)+"%"; $("loadText").textContent = p>=1 ? (Audio_.failed?"語音檔無法載入，改用系統語音":"真人語音準備完成！") : "載入真人語音 "+Math.round(p*100)+"%"; if(p>=1){ $("btnEnter").disabled=false; } });
+  $("btnEnter").onclick=()=>{ ensureCtx(); announce("welcome"); SFX.coin(); goLobby(); };
+})();
+
+/* ===================== LOBBY ===================== */
+let lobbyHeroActor=null;
+function goLobby(){
+  show("scr-lobby");
+  if(!lobbyHeroActor) lobbyHeroActor=registerActor($("lobbyHero"),{});
+  lobbyHeroActor.skin=skinById(S.skin);
+  $("lobbyHeroName").textContent=skinById(S.skin).name;
+  $("lobbyCoins").textContent=S.coins;
+  const t=tierOf(S.lp), nt=nextTier(S.lp);
+  $("rankBadge").textContent=t.short; $("rankBadge").style.setProperty("--tier",t.color); $("rankName").textContent=t.name+(nt?"":" · 最高牌位");
+  const pct = nt ? Math.round((S.lp-t.lp)/(nt.lp-t.lp)*100) : 100;
+  $("lpBar").style.width=pct+"%"; $("lpText").textContent = S.lp+" LP"+(nt?("，再 "+(nt.lp-S.lp)+" LP 升到"+nt.name):"");
+  $("btnVoice").textContent = S.voice==="f"?"🎙️ 女聲":S.voice==="m"?"🎙️ 男聲":"🎙️ 隨機";
+  $("btnMute").textContent = S.muted?"🔇":"🔊";
+  if(!$("patchWords").children.length){ WORDS.forEach((w,i)=>{ const d=document.createElement("button"); d.className="wordchip"; d.innerHTML='<span class="en"></span><span class="zh"></span>'; d.children[0].textContent=w.en; d.children[1].textContent=w.zh; d.onclick=()=>{ sayWord(i); }; $("patchWords").appendChild(d); }); }
+}
+$("btnVoice").onclick=()=>{ S.voice = S.voice==="f"?"m":S.voice==="m"?"r":"f"; save(); goLobby(); sayWord(Math.floor(Math.random()*20)); };
+$("btnMute").onclick=()=>{ S.muted=!S.muted; save(); $("btnMute").textContent=S.muted?"🔇":"🔊"; if(Audio_.current){try{Audio_.current.stop()}catch(e){}} };
+$("btnShop").onclick=()=>openShop();
+$("btnDex").onclick=()=>openDex();
+document.querySelectorAll(".mode").forEach(b=>b.onclick=()=>{ const m=b.dataset.mode; if(m==="tower") startBattle(false); if(m==="spell") startBattle(true); if(m==="obby") startObby(); if(m==="boss") startBoss(); });
+
+/* ===================== RESULT ===================== */
+let lastMode=null;
+function showResult({mode,title,color,correct,total,lp,coins,missed,win}){
+  lastMode=mode;
+  const before=tierOf(S.lp); S.lp=Math.max(0,S.lp+lp); if(win) S.wins++; save(); const after=tierOf(S.lp);
+  show("scr-result");
+  $("resultMode").textContent={tower:"推塔對戰",spell:"聽寫高塔",obby:"跑酷闖關",boss:"BOSS 句子戰"}[mode];
+  $("resultTitle").textContent=title; $("resultTitle").style.color=color;
+  const acc=total?correct/total:0; const stars= acc>=.9?3:acc>=.7?2:acc>=.4?1:0;
+  $("resultStars").innerHTML=[0,1,2].map(i=>'<span>'+(i<stars?"⭐":"☆")+'</span>').join("");
+  $("resCorrect").textContent=correct+"/"+total; $("resLP").textContent=(lp>=0?"+":"")+lp; $("resCoins").textContent="+"+coins;
+  if(after.lp>before.lp){ $("resRank").textContent="🎉 牌位晉升："+before.name+" → "+after.name+"！"; announce("rankup",900); confetti(90); }
+  else if(after.lp<before.lp){ $("resRank").textContent="牌位降為 "+after.name+"，再接再厲！"; }
+  else $("resRank").textContent="目前牌位："+after.name+" · "+S.lp+" LP";
+  const uniq=[...new Set(missed)];
+  $("resMissPanel").classList.toggle("hidden",uniq.length===0);
+  $("resMiss").innerHTML="";
+  uniq.forEach(i=>{ const w=WORDS[i]; const d=document.createElement("div"); d.className="row wordchip"; d.innerHTML='<span class="en"></span><span class="zh grow"></span><button class="btn mini">🔊</button><button class="btn mini">💬</button>'; d.children[0].textContent=w.en; d.children[1].textContent=w.zh; d.children[2].onclick=()=>sayWord(i); d.children[3].onclick=()=>saySentence(i); $("resMiss").appendChild(d); });
+  if(win){ SFX.fanfare(); confetti(60); } else SFX.sad();
+}
+$("btnResultHome").onclick=()=>goLobby();
+$("btnReplay").onclick=()=>{ if(lastMode==="tower") startBattle(false); else if(lastMode==="spell") startBattle(true); else if(lastMode==="obby") startObby(); else startBoss(); };
+
+/* ===================== TOWER BATTLE ===================== */
+const B={};
+let heroActor=null, enemyActor=null;
+function startBattle(spell){
+  show("scr-battle");
+  if(!heroActor){ heroActor=registerActor($("battleHero"),{}); enemyActor=registerActor($("battleEnemy"),{type:"monster"}); }
+  heroActor.skin=skinById(S.skin);
+  Object.assign(B,{spell,round:0,total:12,order:shuffle(WORDS.map((w,i)=>i)).slice(0,12),myHP:100,enHP:100,combo:0,correct:0,coins:0,missed:[],locked:false,timer:null,over:false});
+  $("myTower").classList.remove("dead"); $("enemyTower").classList.remove("dead");
+  $("battleCoins").textContent=S.coins; updateBars();
+  announce("ready"); setTimeout(()=>{ if(!B.over) nextRound(); },900);
+}
+function updateBars(){ $("myTowerBar").style.width=B.myHP+"%"; $("enemyTowerBar").style.width=B.enHP+"%"; $("myTowerBar").parentElement.classList.toggle("low",B.myHP<=30); $("enemyTowerBar").parentElement.classList.toggle("low",B.enHP<=30); }
+function nextRound(){
+  if(B.round>=B.total){ return endBattle(); }
+  B.cur=B.order[B.round]; B.locked=false; B.answered=false;
+  $("battleRound").textContent="第 "+(B.round+1)+" / "+B.total+" 回合";
+  $("battleReveal").textContent = B.spell?"聽聽看，選出正確的拼字！":"聽聽看，這是哪個單字？";
+  const opts=shuffle([B.cur,...distractors(B.cur,3)]);
+  const box=$("battleChoices"); box.innerHTML="";
+  opts.forEach(i=>{ const b=document.createElement("button"); b.className="choice"+(B.spell?" en":""); b.textContent=B.spell?WORDS[i].en:WORDS[i].zh; b.dataset.i=i; b.onclick=()=>answerBattle(i,b); box.appendChild(b); });
+  setTimeout(()=>{ if(B.round<B.total&&!B.over) playCue(false); },350);
+  startTimer(9000);
+}
+function playCue(slow){ const btn=$("btnListen"); btn.classList.add("playing"); const d=sayWord(B.cur,slow); setTimeout(()=>btn.classList.remove("playing"),Math.max(600,d*1000)); }
+$("btnListen").onclick=()=>{ if(B.cur!=null&&!B.answered) playCue(false); };
+$("btnSlow").onclick=()=>{ if(B.cur!=null&&!B.answered) playCue(true); };
+function startTimer(ms){ clearTimer(); const bar=$("timeBar"); const t0=performance.now(); bar.style.width="100%"; let lastTick=0;
+  B.timer=setInterval(()=>{ const p=1-(performance.now()-t0)/ms; bar.style.width=Math.max(0,p*100)+"%"; if(p<.3&&Math.floor(p*100/8)!==lastTick){ lastTick=Math.floor(p*100/8); SFX.tick(); } if(p<=0){ clearTimer(); answerBattle(-1,null); } },50); }
+function clearTimer(){ if(B.timer){ clearInterval(B.timer); B.timer=null; } }
+function answerBattle(i,btn){
+  if(B.locked||B.over) return; B.locked=true; B.answered=true; clearTimer();
+  const ok = i===B.cur; const w=WORDS[B.cur]; addMastery(B.cur,ok);
+  const arena=$("arena"); const buttons=[...$("battleChoices").children];
+  buttons.forEach(b=>{ const bi=+b.dataset.i; if(bi===B.cur) b.classList.add("ok"); else if(b===btn) b.classList.add("bad"); else b.classList.add("dim"); });
+  $("battleReveal").innerHTML='<b></b> = <span></span>'; $("battleReveal").children[0].textContent=w.en; $("battleReveal").children[1].textContent=w.zh;
+  if(ok){
+    B.combo++; B.correct++; B.coins++; addCoins(1);
+    const dmg = B.combo>=3?15:10; B.enHP=Math.max(0,B.enHP-dmg);
+    SFX.correct(); setPose(heroActor,"attack",700);
+    setTimeout(()=>{ SFX.hit(); setPose(enemyActor,"hurt",600); $("enemyTower").classList.add("shake"); setTimeout(()=>$("enemyTower").classList.remove("shake"),400); floatText(arena,"-"+dmg,"72%","30%"); sparks(arena,"80%","55%","#ffc531"); updateBars(); },280);
+    $("comboBox").textContent = B.combo>=2 ? "🔥 "+B.combo+" 連擊"+(B.combo>=3?" ×1.5":"") : "";
+    if(B.combo===3) announce("combo",500); else if(B.combo===5) announce("excellent",500); else if(B.combo===8) announce("perfect",500); else if(Math.random()<.35) announce(Math.random()<.5?"correct":"goodjob",450);
+    if(B.combo>=3) setTimeout(()=>sayWord(B.cur),1300);
+  } else {
+    B.combo=0; B.missed.push(B.cur); $("comboBox").textContent="";
+    SFX.wrong(); setPose(enemyActor,"attack",700);
+    setTimeout(()=>{ SFX.hit(); setPose(heroActor,"hurt",600); $("myTower").classList.add("shake"); setTimeout(()=>$("myTower").classList.remove("shake"),400); floatText(arena,"-15","20%","30%","#ffb3ae"); sparks(arena,"18%","55%","#ff5f57"); B.myHP=Math.max(0,B.myHP-15); updateBars(); },280);
+    if(i===-1) $("battleReveal").insertAdjacentHTML("afterbegin",'<div style="color:var(--coral2)">⏰ 時間到！</div>');
+    setTimeout(()=>sayWord(B.cur),900);
+    if(Math.random()<.5) announce("nicetry",350);
+  }
+  B.round++;
+  const wait = ok?1700:2600;
+  setTimeout(()=>{ if(B.enHP<=0||B.myHP<=0) endBattle(); else nextRound(); },wait);
+}
+function endBattle(){
+  if(B.over) return; B.over=true; clearTimer();
+  const win = B.enHP<=0 || (B.myHP>0 && B.enHP<B.myHP);
+  if(win){ $("enemyTower").classList.add("dead"); SFX.boom(); banner("VICTORY!","#ffe17a"); announce("victory",300); setPose(heroActor,"cheer",3000); }
+  else { $("myTower").classList.add("dead"); SFX.boom(); banner("DEFEAT","#ffb3ae"); announce("defeat",300); setPose(heroActor,"hurt",2000); }
+  const lp = win ? 25 + Math.round(B.correct/B.total*10) : -8;
+  const bonus = win?10:0; if(bonus) addCoins(bonus);
+  setTimeout(()=>showResult({mode:B.spell?"spell":"tower",title:win?"VICTORY":"DEFEAT",color:win?"var(--blue2)":"var(--coral2)",correct:B.correct,total:B.total,lp,coins:B.coins+bonus,missed:B.missed,win}),2200);
+}
+$("btnBattleQuit").onclick=()=>{ B.over=true; clearTimer(); goLobby(); };
+
+/* ===================== OBBY ===================== */
+const O={}; let obbyActor=null;
+function startObby(){
+  show("scr-obby");
+  if(!obbyActor) obbyActor=registerActor($("obbyHero"),{});
+  obbyActor.skin=skinById(S.skin);
+  Object.assign(O,{step:0,total:15,order:shuffle(WORDS.map((w,i)=>i)).slice(0,15),hearts:3,correct:0,coins:0,missed:[],locked:false,over:false});
+  renderHearts($("obbyHearts"),3,3);
+  resetObbyScene();
+  announce("letsgo"); setTimeout(()=>{ if(!O.over) nextPlatform(); },800);
+}
+function resetObbyScene(){ const h=$("obbyHero"); h.classList.remove("fall"); h.style.transition="none"; h.style.left="50%"; h.style.top="9px"; h.style.transform="translateX(-50%)"; requestAnimationFrame(()=>{ h.style.transition=""; }); [0,1,2].forEach(k=>{ const p=$("plat"+k); p.className="plat"; p.style.top="200px"; p.style.opacity="1"; }); $("platStart").style.top="100px"; $("platStart").style.opacity="1"; }
+function nextPlatform(){
+  if(O.step>=O.total) return endObby(true);
+  O.cur=O.order[O.step]; O.locked=false;
+  $("obbyStep").textContent="平台 "+(O.step+1)+" / "+O.total;
+  $("obbyReveal").textContent="聽到單字後，點正確的平台跳過去！";
+  const opts=shuffle([O.cur,...distractors(O.cur,2)]); O.opts=opts;
+  const box=$("obbyChoices"); box.innerHTML="";
+  opts.forEach((i,k)=>{ const p=$("plat"+k); p.className="plat"; p.textContent=WORDS[i].zh; p.onclick=()=>answerObby(k); const b=document.createElement("button"); b.className="choice"; b.textContent=["⬅️ 左","⬆️ 中","➡️ 右"][k]; b.onclick=()=>answerObby(k); box.appendChild(b); });
+  setTimeout(()=>{ if(!O.over) obbyCue(false); },350);
+}
+function obbyCue(slow){ const btn=$("btnObbyListen"); btn.classList.add("playing"); const d=sayWord(O.cur,slow); setTimeout(()=>btn.classList.remove("playing"),Math.max(600,d*1000)); }
+$("btnObbyListen").onclick=()=>{ if(O.cur!=null&&!O.locked) obbyCue(false); };
+$("btnObbySlow").onclick=()=>{ if(O.cur!=null&&!O.locked) obbyCue(true); };
+function answerObby(k){
+  if(O.locked||O.over) return; O.locked=true;
+  const i=O.opts[k]; const ok=i===O.cur; const w=WORDS[O.cur]; addMastery(O.cur,ok);
+  const hero=$("obbyHero"); const lefts=["18%","50%","82%"];
+  SFX.jump(); setPose(obbyActor,"jump",500);
+  hero.style.left=lefts[k]; hero.style.top="109px";
+  $("obbyReveal").innerHTML='<b style="font-family:var(--font-display);font-size:1.4rem;color:var(--blue2)"></b> = <span></span>'; $("obbyReveal").children[0].textContent=w.en; $("obbyReveal").children[1].textContent=w.zh;
+  [...$("obbyChoices").children].forEach((b,bi)=>{ if(O.opts[bi]===O.cur) b.classList.add("ok"); else if(bi===k) b.classList.add("bad"); else b.classList.add("dim"); });
+  if(ok){
+    O.correct++; O.coins++; addCoins(1);
+    setTimeout(()=>{ $("plat"+k).classList.add("glow"); SFX.coin(); sparks($("obbyStage"),lefts[k],"200px","#ffe17a"); if((O.step+1)%5===0&&O.step+1<O.total){ toast("🚩 存檔點！",1200); announce("goodjob",200);} else if(Math.random()<.3) announce(Math.random()<.5?"correct":"excellent",200); },480);
+    // advance scene: chosen platform becomes the new start
+    setTimeout(()=>{ const sp=$("platStart"); sp.style.left=$("plat"+k).style.left; sp.textContent=w.zh; sp.classList.remove("start"); sp.classList.add("glow"); [0,1,2].forEach(j=>{ if(j!==k) $("plat"+j).classList.add("crumble"); }); },1200);
+    setTimeout(()=>{ const sp=$("platStart"); sp.className="plat start"; sp.style.transition="none"; sp.style.left="36%"; sp.textContent=w.zh; $("plat"+k).style.opacity="0"; const h=$("obbyHero"); h.style.transition="none"; h.style.left="50%"; h.style.top="9px"; requestAnimationFrame(()=>{ h.style.transition=""; sp.style.transition=""; [0,1,2].forEach(j=>{ const p=$("plat"+j); p.className="plat"; p.style.opacity="1"; }); O.step++; nextPlatform(); }); },1750);
+  } else {
+    O.missed.push(O.cur); O.hearts--; renderHearts($("obbyHearts"),O.hearts,3);
+    setTimeout(()=>{ $("plat"+k).classList.add("crumble"); hero.classList.add("fall"); hero.style.top="300px"; SFX.fall(); setPose(obbyActor,"fall",900); announce(Math.random()<.5?"watchout":"tryagain",100); },480);
+    setTimeout(()=>sayWord(O.cur),1300);
+    setTimeout(()=>{ if(O.hearts<=0){ endObby(false); return; } resetObbyScene(); O.step++; nextPlatform(); },2600);
+  }
+}
+function endObby(cleared){
+  if(O.over) return; O.over=true;
+  if(cleared){ banner("CLEAR!","#ffe17a"); announce("victory",200); setPose(obbyActor,"cheer",3000); } else { banner("GAME OVER","#ffb3ae"); announce("defeat",200); }
+  const lp = O.correct*2 + (cleared?10:0); const bonus=cleared?10:0; if(bonus) addCoins(bonus);
+  setTimeout(()=>showResult({mode:"obby",title:cleared?"CLEAR!":"GAME OVER",color:cleared?"var(--mint2)":"var(--coral2)",correct:O.correct,total:cleared?O.total:Math.min(O.total,O.step+1),lp,coins:O.coins+bonus,missed:O.missed,win:cleared}),1800);
+}
+$("btnObbyQuit").onclick=()=>{ O.over=true; goLobby(); };
+
+/* ===================== BOSS ===================== */
+const K={}; let bossActor=null;
+function startBoss(){
+  show("scr-boss");
+  if(!bossActor) bossActor=registerActor($("bossCanvas"),{type:"monster",boss:true});
+  Object.assign(K,{round:0,total:10,order:shuffle(WORDS.map((w,i)=>i)).slice(0,10),hp:10,hearts:3,correct:0,coins:0,missed:[],locked:false,over:false});
+  renderHearts($("bossHearts"),3,3); $("bossBar").style.width="100%";
+  announce("boss"); setTimeout(()=>{ if(!K.over) nextSentence(); },1200);
+}
+function nextSentence(){
+  if(K.round>=K.total) return endBoss(true);
+  K.cur=K.order[K.round]; K.locked=false;
+  $("bossRound").textContent="句子 "+(K.round+1)+" / "+K.total;
+  $("bossSentence").innerHTML='<div style="color:var(--ink2)">🎧 仔細聽……</div>';
+  const opts=shuffle([K.cur,...distractors(K.cur,3)]);
+  const box=$("bossChoices"); box.innerHTML="";
+  opts.forEach(i=>{ const b=document.createElement("button"); b.className="choice en"; b.textContent=WORDS[i].en; b.dataset.i=i; b.onclick=()=>answerBoss(i,b); box.appendChild(b); });
+  setTimeout(()=>{ if(!K.over) bossCue(); },400);
+}
+function bossCue(){ const btn=$("btnBossListen"); btn.classList.add("playing"); const d=saySentence(K.cur); setTimeout(()=>btn.classList.remove("playing"),Math.max(800,d*1000)); }
+$("btnBossListen").onclick=()=>{ if(K.cur!=null&&!K.locked) bossCue(); };
+function answerBoss(i,btn){
+  if(K.locked||K.over) return; K.locked=true;
+  const ok=i===K.cur; const w=WORDS[K.cur]; addMastery(K.cur,ok);
+  [...$("bossChoices").children].forEach(b=>{ const bi=+b.dataset.i; if(bi===K.cur) b.classList.add("ok"); else if(b===btn) b.classList.add("bad"); else b.classList.add("dim"); });
+  const sb=$("bossSentence"); sb.innerHTML='<div class="en"></div><div class="zh"></div>';
+  const hl=w.sen.replace(new RegExp("("+w.en.replace(/ /g,"\\s")+")","i"),"§$1§").split("§"); hl.forEach((part,k)=>{ const s=document.createElement(k===1?"mark":"span"); s.textContent=part; if(k===1){ s.style.background="var(--sun)"; s.style.borderRadius="6px"; s.style.padding="0 4px"; } sb.children[0].appendChild(s); }); sb.children[1].textContent=w.szh;
+  const arena=$("bossArena");
+  if(ok){
+    K.correct++; K.coins+=2; addCoins(2); K.hp--; $("bossBar").style.width=(K.hp*10)+"%"; $("bossBar").parentElement.classList.toggle("low",K.hp<=3);
+    SFX.correct(); setTimeout(()=>{ SFX.hit(); setPose(bossActor,"hurt",700); arena.classList.add("shake"); setTimeout(()=>arena.classList.remove("shake"),400); floatText(arena,"-1 HP","60%","20%"); sparks(arena,"50%","50%","#c59cff"); },250);
+    if(K.hp===5) announce("excellent",500); else if(Math.random()<.4) announce(Math.random()<.5?"correct":"goodjob",450);
+  } else {
+    K.missed.push(K.cur); K.hearts--; renderHearts($("bossHearts"),K.hearts,3);
+    SFX.wrong(); setPose(bossActor,"attack",700); setTimeout(()=>{ SFX.hit(); arena.classList.add("shake"); setTimeout(()=>arena.classList.remove("shake"),400); },300);
+    announce("watchout",300);
+  }
+  setTimeout(()=>saySentence(K.cur),ok?900:1400);
+  K.round++;
+  setTimeout(()=>{ if(K.hp<=0) endBoss(true); else if(K.hearts<=0) endBoss(false); else nextSentence(); }, ok?3400:4200);
+}
+function endBoss(win){
+  if(K.over) return; K.over=true;
+  if(win){ banner("BOSS DOWN!","#ffe17a"); SFX.boom(); announce("victory",400); } else { banner("DEFEAT","#ffb3ae"); announce("defeat",300); }
+  const lp = win?30+K.correct:5; const bonus=win?15:0; if(bonus) addCoins(bonus);
+  setTimeout(()=>showResult({mode:"boss",title:win?"BOSS DOWN!":"DEFEAT",color:win?"var(--violet2)":"var(--coral2)",correct:K.correct,total:K.round,lp,coins:K.coins+bonus,missed:K.missed,win}),2000);
+}
+$("btnBossQuit").onclick=()=>{ K.over=true; goLobby(); };
+
+/* ===================== DEX ===================== */
+function openDex(){
+  show("scr-dex"); const list=$("dexList"); list.innerHTML="";
+  WORDS.forEach((w,i)=>{
+    const d=document.createElement("div"); d.className="panel dex-item";
+    const st=starsFor(i), m=mastery(i);
+    d.innerHTML='<div><div class="en"></div><div class="zh"></div></div><div class="row" style="gap:6px;justify-content:flex-end"><button class="btn mini">🔊</button><button class="btn mini">🎙️</button><button class="btn mini">🐢</button></div><div class="sent"><button class="btn mini">💬 例句</button><i></i><span></span></div><div class="stars" style="grid-column:1/-1"></div>';
+    d.querySelector(".en").textContent=w.en; d.querySelector(".zh").textContent=w.zh;
+    const btns=d.querySelectorAll("button"); btns[0].onclick=()=>playKey("w"+i+"f",w.en,1); btns[1].onclick=()=>playKey("w"+i+"m",w.en,1); btns[2].onclick=()=>sayWord(i,true); btns[3].onclick=()=>saySentence(i);
+    d.querySelector(".sent i").textContent=w.sen; d.querySelector(".sent span").textContent=w.szh;
+    d.querySelector(".stars").textContent="★".repeat(st)+"☆".repeat(3-st)+"  熟練度 "+m.c+"/"+m.a;
+    list.appendChild(d);
+  });
+}
+$("btnDexBack").onclick=()=>goLobby();
+
+/* ===================== SHOP ===================== */
+function openShop(){
+  show("scr-shop"); $("shopCoins").textContent=S.coins; const list=$("skinList"); list.innerHTML="";
+  SKINS.forEach(sk=>{
+    const owned=S.owned.includes(sk.id), eq=S.skin===sk.id;
+    const d=document.createElement("div"); d.className="panel skin"+(eq?" equipped":"");
+    const cv=document.createElement("canvas"); cv.width=156; cv.height=208; d.appendChild(cv); registerActor(cv,{skin:sk,phase:Math.random()*3});
+    const b=document.createElement("b"); b.textContent=sk.name; d.appendChild(b);
+    const btn=document.createElement("button"); btn.className="btn mini "+(eq?"mint":owned?"primary":"sun");
+    btn.innerHTML = eq?"✓ 已裝備":owned?"裝備":'<span class="coin" style="width:14px;height:14px;display:inline-block;border-radius:50%;background:var(--sun);border:2px solid var(--sun2)"></span> '+sk.price;
+    btn.onclick=()=>{ if(eq) return; if(owned){ S.skin=sk.id; save(); SFX.coin(); toast("已換上 "+sk.name+"！"); openShop(); } else if(S.coins>=sk.price){ S.coins-=sk.price; S.owned.push(sk.id); S.skin=sk.id; save(); SFX.fanfare(); confetti(40); announce("levelup"); toast("🎉 解鎖 "+sk.name+"！"); openShop(); } else { SFX.wrong(); toast("還差 "+(sk.price-S.coins)+" 金幣，去對戰賺金幣吧！"); } };
+    d.appendChild(btn); list.appendChild(d);
+  });
+}
+$("btnShopBack").onclick=()=>goLobby();
+
+/* keyboard shortcuts for desktop */
+document.addEventListener("keydown",e=>{ const n=+e.key; if(n>=1&&n<=4){ const vis=document.querySelector(".screen:not(.hidden) .choices, .screen:not(.hidden) .obby-choices"); if(vis&&vis.children[n-1]) vis.children[n-1].click(); } if(e.key===" "){ const b=document.querySelector(".screen:not(.hidden) .listen-btn"); if(b){ e.preventDefault(); b.click(); } } });
+</script>
+
+</body>
+</html>
