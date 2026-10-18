@@ -11,14 +11,15 @@
 :root{
   --bg:#f3f5f9; --card:#ffffff; --ink:#1c2a3a; --ink2:#5b6b7f; --line:#dfe5ee; --soft:#eaf1ff;
   --accent:#2f7df6; --accent2:#1b5fd0; --rec:#ff4d5e; --rec2:#d93445; --ok:#1fae6c; --ok2:#168a55; --star:#f5b50a; --warn:#f08c00;
+  --okbg:#d9f5e6; --okfg:#0f7a45; --midbg:#fff1c9; --midfg:#8a5b00; --badbg:#ffe0e3; --badfg:#b3202e;
   --font-en:'Fredoka','Noto Sans TC',system-ui,sans-serif;
   --font-body:'Noto Sans TC',system-ui,-apple-system,'PingFang TC','Microsoft JhengHei',sans-serif;
   --shadow:0 2px 10px rgba(28,42,58,.08);
   padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
   color-scheme:light;
 }
-@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){ --bg:#0f141b; --card:#1a222d; --ink:#eef3f8; --ink2:#a3b1c2; --line:#2b3745; --soft:#1e2a3c; --accent:#6ea8ff; --accent2:#4d8cf0; --rec:#ff6b78; --rec2:#e04c5a; --ok:#3ad28a; --ok2:#2bb574; --star:#ffc63a; --warn:#ffb04d; --shadow:0 2px 10px rgba(0,0,0,.35); color-scheme:dark } }
-:root[data-theme="dark"]{ --bg:#0f141b; --card:#1a222d; --ink:#eef3f8; --ink2:#a3b1c2; --line:#2b3745; --soft:#1e2a3c; --accent:#6ea8ff; --accent2:#4d8cf0; --rec:#ff6b78; --rec2:#e04c5a; --ok:#3ad28a; --ok2:#2bb574; --star:#ffc63a; --warn:#ffb04d; --shadow:0 2px 10px rgba(0,0,0,.35); color-scheme:dark }
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){ --bg:#0f141b; --card:#1a222d; --ink:#eef3f8; --ink2:#a3b1c2; --line:#2b3745; --soft:#1e2a3c; --accent:#6ea8ff; --accent2:#4d8cf0; --rec:#ff6b78; --rec2:#e04c5a; --ok:#3ad28a; --ok2:#2bb574; --star:#ffc63a; --warn:#ffb04d; --okbg:#173f2c; --okfg:#6fe3a6; --midbg:#4a3a0f; --midfg:#ffd36b; --badbg:#4a1c22; --badfg:#ff8a95; --shadow:0 2px 10px rgba(0,0,0,.35); color-scheme:dark } }
+:root[data-theme="dark"]{ --bg:#0f141b; --card:#1a222d; --ink:#eef3f8; --ink2:#a3b1c2; --line:#2b3745; --soft:#1e2a3c; --accent:#6ea8ff; --accent2:#4d8cf0; --rec:#ff6b78; --rec2:#e04c5a; --ok:#3ad28a; --ok2:#2bb574; --star:#ffc63a; --warn:#ffb04d; --okbg:#173f2c; --okfg:#6fe3a6; --midbg:#4a3a0f; --midfg:#ffd36b; --badbg:#4a1c22; --badfg:#ff8a95; --shadow:0 2px 10px rgba(0,0,0,.35); color-scheme:dark }
 *{box-sizing:border-box}
 html,body{min-height:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:16px;line-height:1.5;-webkit-tap-highlight-color:transparent}
@@ -144,6 +145,22 @@ input[type=text]{font:inherit;font-weight:700;padding:8px 10px;border:2px solid 
 .seg button{flex:1;min-height:40px;border:0;background:var(--card);font-weight:900;font-size:.9rem}
 .seg button.on{background:var(--accent);color:#fff}
 .notice{background:var(--soft);border-radius:12px;padding:10px 12px;font-size:.9rem;font-weight:700}
+.wchips{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:6px}
+.wchip{padding:2px 9px;border-radius:999px;font-family:var(--font-en);font-weight:600;font-size:.92rem;background:var(--line);color:var(--ink2)}
+.wchip.ok{background:var(--okbg);color:var(--okfg)}.wchip.mid{background:var(--midbg);color:var(--midfg)}.wchip.bad{background:var(--badbg);color:var(--badfg);text-decoration:line-through}
+.grade{display:inline-block;padding:1px 8px;border-radius:8px;font-weight:900;font-size:.85rem}
+.grade.g3{background:var(--okbg);color:var(--okfg)}.grade.g2{background:var(--midbg);color:var(--midfg)}.grade.g1,.grade.g0{background:var(--badbg);color:var(--badfg)}
+.att{display:grid;grid-template-columns:1fr auto;gap:4px 8px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.att .top{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.85rem;color:var(--ink2);font-weight:700}
+.att .top .en{font-size:1.02rem;color:var(--accent)}
+.att .heard{font-size:.85rem;color:var(--ink2)}
+.att .heard b{font-family:var(--font-en);color:var(--ink);font-weight:600}
+.att .sc{font-family:var(--font-en);font-weight:700;font-size:1.25rem;color:var(--accent);text-align:right;white-space:nowrap}
+.att .sc small{display:block;font-family:var(--font-body);font-size:.75rem;color:var(--star)}
+.att .wchips{justify-content:flex-start;grid-column:1/-1;margin-top:2px}
+.att .play{grid-column:2;justify-self:end}
+.dayhead{font-weight:900;margin-top:6px;display:flex;justify-content:space-between;align-items:center}
+.dayhead small{color:var(--ink2);font-weight:700}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 @media (max-width:360px){.choices{grid-template-columns:1fr}.wordcard .big{font-size:2rem}}
 </style>
@@ -274,11 +291,13 @@ input[type=text]{font:inherit;font-weight:700;padding:8px 10px;border:2px solid 
   <div class="card stack">
     <h3>每個單字的成績</h3>
     <div class="tablewrap"><table><thead><tr><th>單字</th><th>聽力</th><th>發音</th><th>句子</th><th>最近</th></tr></thead><tbody id="logTable"></tbody></table></div>
-    <div class="muted">聽力 = 第一次就選對的次數 / 練習次數。發音、句子 = 自動評分的最佳成績（★★★ 85 分以上，★★ 60 分以上，★ 35 分以上）。</div>
+    <div class="muted">聽力 = 第一次就選對的次數 / 練習次數。發音、句子 = 最佳分數 / 平均分數（次數）。★★★ 85 分以上、★★ 60 分以上、★ 35 分以上。分數由語音辨識比對老師的目標句得出：辨識結果與目標完全相同（含同音字）為 100 分；每個字差幾個音就扣幾分。</div>
   </div>
   <div id="logExportSlot"></div>
   <div class="card stack">
-    <div class="row between"><h3>🎙️ 錄音（最近 40 筆）</h3><span class="muted" id="recCount"></span></div>
+    <div class="row between"><h3>🎯 每一次發音的分數</h3><span class="muted" id="recCount"></span></div>
+    <div class="muted">每一次按麥克風唸的都在這裡：分數、老師聽到的內容、句子裡每個字唸對了沒（綠＝正確、黃＝接近、紅＝沒唸對或沒聽到）。有 ▶ 的可以聽錄音。</div>
+    <div class="seg" id="attFilter"><button data-f="today" class="on">今天</button><button data-f="all">全部</button></div>
     <div class="stack" id="recList"><div class="muted">還沒有錄音。</div></div>
   </div>
   <div class="card stack">
@@ -366,7 +385,7 @@ function fmtTime(ts){ const d=new Date(ts); return (d.getMonth()+1)+"/"+d.getDat
 function streakDays(){ const days=new Set(S.log.map(e=>dayKey(e.t))); let n=0; const d=new Date(); if(!days.has(dayKey(d.getTime()))) d.setDate(d.getDate()-1); while(days.has(dayKey(d.getTime()))){ n++; d.setDate(d.getDate()-1); } return n; }
 
 /* ===================== RECORDINGS (IndexedDB) ===================== */
-const DBN="echoPracticeRec", STORE="rec", REC_CAP=80; let dbp=null;
+const DBN="echoPracticeRec", STORE="rec", REC_CAP=400; let dbp=null;
 function openDB(){ if(dbp) return dbp; dbp=new Promise((res,rej)=>{ try{ const r=indexedDB.open(DBN,1); r.onupgradeneeded=()=>{ const db=r.result; if(!db.objectStoreNames.contains(STORE)){ const st=db.createObjectStore(STORE,{keyPath:"id",autoIncrement:true}); st.createIndex("t","t"); } }; r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); r.onblocked=()=>rej(new Error("blocked")); }catch(e){ rej(e); } }); return dbp; }
 async function saveRec(rec){ try{ const db=await openDB(); await new Promise((res,rej)=>{ const tx=db.transaction(STORE,"readwrite"); tx.objectStore(STORE).add(rec); tx.oncomplete=res; tx.onerror=()=>rej(tx.error); }); const all=await listRec(); if(all.length>REC_CAP){ const old=all.slice(REC_CAP); await new Promise((res,rej)=>{ const tx=db.transaction(STORE,"readwrite"); old.forEach(o=>tx.objectStore(STORE).delete(o.id)); tx.oncomplete=res; tx.onerror=()=>rej(tx.error); }); } return true; }catch(e){ return false; } }
 async function listRec(){ try{ const db=await openDB(); return await new Promise((res,rej)=>{ const tx=db.transaction(STORE,"readonly"); const q=tx.objectStore(STORE).getAll(); q.onsuccess=()=>res((q.result||[]).sort((a,b)=>b.t-a.t)); q.onerror=()=>rej(q.error); }); }catch(e){ return []; } }
@@ -391,6 +410,21 @@ function lev(a,b){ const m=a.length,n=b.length; if(!m) return n; if(!n) return m
 function ratio(a,b){ const m=Math.max(a.length,b.length); if(!m) return 1; return 1-lev(a,b)/m; }
 function scoreWord(w,transcripts){ const aliases=[WORDS[w].en,...(WORDS[w].alias||[])].map(norm); let best=0; for(const t of transcripts){ const nt=norm(t); if(!nt) continue; for(const a of aliases){ let r=ratio(nt,a); if((" "+nt+" ").includes(" "+a+" ")) r=Math.max(r,0.92); best=Math.max(best,r); } } return Math.round(best*100); }
 function scoreSentence(w,transcripts){ const target=norm(WORDS[w].sen).split(" ").filter(Boolean); let best=0; for(const t of transcripts){ const words=norm(t).split(" ").filter(Boolean); if(!words.length) continue; const used=new Set(); let sum=0; for(const tw of target){ let bi=-1,br=0; words.forEach((x,i)=>{ if(used.has(i)) return; const r=ratio(x,tw); if(r>br){ br=r; bi=i; } }); if(br>=0.6){ used.add(bi); sum+=br; } } best=Math.max(best,sum/target.length); } return Math.round(best*100); }
+/* word similarity = letter-level edit distance ratio (recognizer output is already real words; homophones are handled by the alias lists) */
+function wsim(a,b){ a=norm(a); b=norm(b); if(!a||!b) return 0; if(a===b) return 1; return ratio(a,b); }
+const SPOKEN_FORMS={hafta:"have to",wanna:"want to",gonna:"going to",gotta:"got to",lemme:"let me",cannot:"cant",dunno:"dont know"};
+function expandSpoken(t){ return norm(t).split(" ").map(x=>SPOKEN_FORMS[x]||x).join(" "); }
+function aliasesOf(w){ return [WORDS[w].en,...(WORDS[w].alias||[])].map(norm); }
+function scoreWordV2(w,transcripts){ const aliases=aliasesOf(w); let best={score:0,heard:"",sim:0}; for(const t of transcripts){ const nt=norm(t); if(!nt) continue; let sim=0; for(const a of aliases){ if(nt===a){ sim=1; break; } if((" "+nt+" ").includes(" "+a+" ")) sim=Math.max(sim,0.92); sim=Math.max(sim,wsim(nt,a)); const parts=nt.split(" "); for(const p of parts) sim=Math.max(sim,wsim(p,a)*0.9); } const score= sim>=0.999?100: sim>=0.92?Math.round(sim*100): Math.min(75,Math.round(Math.pow(sim,2.5)*100)); if(score>best.score||!best.heard){ best={score,heard:t,sim}; } } return best; }
+const ALIGN_MIN=0.6;
+function wordCredit(sim){ return sim>=0.999?1:sim<ALIGN_MIN?0:sim*sim; }
+function alignWords(target,words){ const n=target.length,m=words.length; const sim=[],sim2=[]; for(let i=0;i<n;i++){ sim[i]=[]; sim2[i]=[]; for(let j=0;j<m;j++){ sim[i][j]=wsim(words[j],target[i]); sim2[i][j]= j>0 ? wsim(words[j-1]+words[j],target[i]) : 0; } } const dp=[]; for(let i=0;i<=n;i++){ dp[i]=[]; for(let j=0;j<=m;j++){ if(i===0||j===0){ dp[i][j]=0; continue; } let v=Math.max(dp[i-1][j],dp[i][j-1]); if(sim[i-1][j-1]>=ALIGN_MIN) v=Math.max(v,dp[i-1][j-1]+sim[i-1][j-1]); if(j>=2&&sim2[i-1][j-1]>=ALIGN_MIN) v=Math.max(v,dp[i-1][j-2]+sim2[i-1][j-1]); dp[i][j]=v; } } const out=target.map(t=>({w:t,sim:0,heard:""})); let i=n,j=m; const eq=(a,b)=>Math.abs(a-b)<1e-9; while(i>0&&j>0){ if(j>=2&&sim2[i-1][j-1]>=ALIGN_MIN&&eq(dp[i][j],dp[i-1][j-2]+sim2[i-1][j-1])){ out[i-1]={w:target[i-1],sim:sim2[i-1][j-1],heard:words[j-2]+" "+words[j-1]}; i--; j-=2; } else if(sim[i-1][j-1]>=ALIGN_MIN&&eq(dp[i][j],dp[i-1][j-1]+sim[i-1][j-1])){ out[i-1]={w:target[i-1],sim:sim[i-1][j-1],heard:words[j-1]}; i--; j--; } else if(dp[i-1][j]>=dp[i][j-1]) i--; else j--; } return out; }
+function canonKeyword(w,text){ let t=" "+expandSpoken(text)+" "; const en=norm(WORDS[w].en); (WORDS[w].alias||[]).map(norm).sort((a,b)=>b.length-a.length).forEach(a=>{ t=t.split(" "+a+" ").join(" "+en+" "); }); return t.trim(); }
+function scoreSentenceV2(w,transcripts){ const target=expandSpoken(WORDS[w].sen).split(" ").filter(Boolean); let best=null; for(const t of transcripts){ const words=canonKeyword(w,t).split(" ").filter(Boolean); if(!words.length) continue; const al=alignWords(target,words); const avg=al.reduce((a,x)=>a+wordCredit(x.sim),0)/target.length; const score=Math.round(avg*100); if(!best||score>best.score) best={score,heard:t,words:al.map(x=>[x.w,Math.round(wordCredit(x.sim)*100),x.heard])}; } return best||{score:0,heard:"",words:target.map(x=>[x,0,""])}; }
+function gradeLabel(score){ const n=stars(score); return n===3?"優":n===2?"良":n===1?"可":"再加油"; }
+function chipClass(sim){ return sim>=85?"ok":sim>=50?"mid":"bad"; }
+function renderChips(words){ const box=document.createElement("div"); box.className="wchips"; (words||[]).forEach(([w,sim])=>{ const c=document.createElement("span"); c.className="wchip "+chipClass(sim); c.textContent=w; c.title=sim+"%"; box.appendChild(c); }); return box; }
+async function analyzeBlob(blob){ try{ const buf=await decodeBlob(blob); let sum=0,n=0,peak=0; for(let c=0;c<buf.numberOfChannels;c++){ const d=buf.getChannelData(c); for(let k=0;k<d.length;k+=2){ const v=d[k]; sum+=v*v; n++; const a=Math.abs(v); if(a>peak) peak=a; } } return {dur:buf.duration,rms:n?Math.sqrt(sum/n):0,peak}; }catch(e){ return null; } }
 function feedbackFor(score){ const n=stars(score); return n===3?"太棒了！唸得很標準 🎉":n===2?"很好！再唸一次會更棒 👍":n===1?"有聽到喔，再試一次 💪":"沒聽清楚，靠近麥克風再唸一次 🎤"; }
 
 /* ===================== MICROPHONE ===================== */
@@ -433,10 +467,10 @@ $("btnStart").onclick=()=>{ ensureCtx(); startSession(null); };
 $("btnList").onclick=()=>openList(); $("btnLog").onclick=()=>openLog(); $("btnSettings").onclick=()=>openSettings();
 
 /* ===================== SESSION ===================== */
-const P={session:[],idx:0,w:null,step:1,listenTries:0,say:null,sent:null,sayBlob:null,sentBlob:null,sayTried:false,sentTried:false,results:[]};
+const P={session:[],idx:0,w:null,step:1,listenTries:0,say:null,sent:null,sayBlob:null,sentBlob:null,sayTried:false,sentTried:false,results:[],attempts:[]};
 function pickSession(){ const done=doneTodaySet(); const rest=WORDS.map((x,i)=>i).filter(i=>!done.has(i)); let pick=rest.slice(0,SESSION_SIZE); if(pick.length<SESSION_SIZE){ const others=WORDS.map((x,i)=>i).filter(i=>!pick.includes(i)).sort((a,b)=>{ const sa=(bestOf(a).say??-1)+(bestOf(a).sent??-1), sb=(bestOf(b).say??-1)+(bestOf(b).sent??-1); return sa-sb||a-b; }); pick=pick.concat(others.slice(0,SESSION_SIZE-pick.length)); } return pick; }
 function startSession(single){ P.session= single!=null?[single]:pickSession(); P.idx=0; P.results=[]; show("scr-practice"); announce("letsgo"); setTimeout(()=>startWord(),700); }
-function startWord(){ P.w=P.session[P.idx]; P.step=1; P.listenTries=0; P.say=null; P.sent=null; P.sayBlob=null; P.sentBlob=null; P.sayTried=false; P.sentTried=false;
+function startWord(){ P.w=P.session[P.idx]; P.step=1; P.listenTries=0; P.say=null; P.sent=null; P.sayBlob=null; P.sentBlob=null; P.sayTried=false; P.sentTried=false; P.attempts=[];
   $("pIdx").textContent=(P.idx+1)+"/"+P.session.length; const dots=$("dots"); dots.innerHTML=""; P.session.forEach((w,i)=>{ const d=document.createElement("i"); if(i<P.idx) d.className="done"; else if(i===P.idx) d.className="cur"; dots.appendChild(d); });
   ["step1","step2","step3","stepDone"].forEach(id=>$(id).classList.add("hidden")); $("step1").classList.remove("hidden"); setStepper(1);
   const w=WORDS[P.w]; const opts=shuffle([P.w,...distractors(P.w,3)]); const box=$("choices"); box.innerHTML=""; opts.forEach(i=>{ const b=document.createElement("button"); b.className="choice"; b.textContent=WORDS[i].zh; b.dataset.i=i; b.onclick=()=>answer(i,b); box.appendChild(b); });
@@ -457,16 +491,21 @@ async function doCapture(n){ const kind=n===2?"word":"sent"; const mic=$("mic"+n
   const ms=kind==="word"?WORD_MS:SENT_MS; mic.className="mic rec"; mic.textContent="⏹"; $("micTxt"+n).textContent="正在聽你唸…（再按一下可提早停止）"; $("res"+n).classList.add("hidden"); SFX.start(); if(Audio_.current){ try{Audio_.current.stop()}catch(e){} }
   const out=await capture(ms,p=>{ $("micBar"+n).style.width=Math.round(p*100)+"%"; });
   mic.className="mic busy"; mic.textContent="…"; $("micTxt"+n).textContent="辨識中…"; SFX.stop();
-  // evaluate
-  let score=null; if(out.transcripts&&out.transcripts.length){ score= kind==="word"?scoreWord(P.w,out.transcripts):scoreSentence(P.w,out.transcripts); }
+  // evaluate (every attempt gets a number whenever the recognizer is working)
   const scoredPossible=wantScore(); const noAudio=!out.blob&&!out.transcripts.length;
+  const ac = out.blob ? await analyzeBlob(out.blob) : null; const silent = !!(ac&&ac.rms<0.004&&ac.peak<0.03);
+  let score=null, heard="", words=null, note="";
+  if(out.transcripts&&out.transcripts.length){ const r= kind==="word"?scoreWordV2(P.w,out.transcripts):scoreSentenceV2(P.w,out.transcripts); score=r.score; heard=r.heard; words=r.words||null; Mic.noResultStreak=0; }
+  else if(scoredPossible){ if(out.srError==="no-speech"||silent){ score=0; note="沒聽到聲音"; } else if(out.srError){ note="無法評分："+out.srError; } else if(ac&&ac.rms>=0.004){ Mic.noResultStreak=(Mic.noResultStreak||0)+1; if(Mic.noResultStreak<=2){ score=0; note="聽不出是英文"; } else { note="辨識沒有回應（可能和錄音互相干擾），建議到設定改成「只評分」"; } } else { note="沒有收到聲音"; } }
+  if(ac&&ac.peak>0.98) note=(note?note+"；":"")+"聲音太大聲（爆音）";
+  P.attempts.push({k:kind,s:score,tr:heard,t:Date.now(),words:words,note});
   if(noAudio&&(Mic.permDenied||out.srError==="not-allowed")){ mic.className="mic"; mic.textContent="🎙️"; $("micTxt"+n).textContent="需要允許使用麥克風才能錄音。請在瀏覽器的網址列或設定中允許麥克風，再按一次。"; $("btnSkip"+n).classList.remove("hidden"); return; }
   const blob=out.blob; if(kind==="word"){ P.sayTried=true; if(score!=null&&(P.say==null||score>P.say)){ P.say=score; P.sayBlob=blob||P.sayBlob; } else if(!P.sayBlob) P.sayBlob=blob; P.lastBlob2=blob; } else { P.sentTried=true; if(score!=null&&(P.sent==null||score>P.sent)){ P.sent=score; P.sentBlob=blob||P.sentBlob; } else if(!P.sentBlob) P.sentBlob=blob; P.lastBlob3=blob; }
-  if(blob) saveRec({w:P.w,kind,t:Date.now(),score,blob,mime:out.mime});
+  if(blob||score!=null) saveRec({w:P.w,kind,t:Date.now(),score,blob:blob||null,mime:out.mime,heard,words,note,rms:ac?Math.round(ac.rms*1000)/1000:null,dur:ac?Math.round(ac.dur*10)/10:null});
   // result UI
   const r=$("res"+n); r.classList.remove("hidden");
-  if(score!=null){ const n3=stars(score); r.innerHTML='<div class="stars"></div><div class="score"></div><div class="heard"></div><div style="font-weight:900;margin-top:4px"></div>'; r.children[0].innerHTML=[0,1,2].map(i=>'<span>'+(i<n3?"⭐":"☆")+'</span>').join(""); r.children[1].textContent=score+" 分"; const heard=out.transcripts[0]||""; r.children[2].innerHTML=heard?'老師聽到你唸：<b></b>':""; if(heard) r.children[2].querySelector("b").textContent=heard; r.children[3].textContent=feedbackFor(score); if(n3===3){ announce(Math.random()<.5?"excellent":"perfect",300); confetti(30); } else if(n3===2) announce("goodjob",300); else announce(Math.random()<.5?"nicetry":"tryagain",300); }
-  else if(blob){ r.innerHTML='<div style="font-size:2rem">🎧</div><div style="font-weight:900">錄好了！</div><div class="heard"></div>'; r.children[2].textContent = scoredPossible?"這次沒有辨識到聲音，聽聽看自己的錄音，再試一次。":(S.mode==="rec"?"目前是「只錄音」模式，請聽聽看自己和老師唸得像不像。":"這台裝置無法自動評分，請聽聽看自己和老師唸得像不像。"); announce("goodjob",200); }
+  if(score!=null){ const n3=stars(score); r.innerHTML='<div class="stars"></div><div class="score"></div><div class="heard"></div><div style="font-weight:900;margin-top:4px"></div>'; r.children[0].innerHTML=[0,1,2].map(i=>'<span>'+(i<n3?"⭐":"☆")+'</span>').join(""); r.children[1].textContent=score+" 分 · "+gradeLabel(score); r.children[2].innerHTML=heard?'老師聽到你唸：<b></b>':(note?'<span></span>':""); if(heard) r.children[2].querySelector("b").textContent=heard; else if(note) r.children[2].querySelector("span").textContent=note; if(kind==="sent"&&words) r.appendChild(renderChips(words)); r.children[3].textContent=feedbackFor(score); if(n3===3){ announce(Math.random()<.5?"excellent":"perfect",300); confetti(30); } else if(n3===2) announce("goodjob",300); else announce(Math.random()<.5?"nicetry":"tryagain",300); }
+  else if(blob){ r.innerHTML='<div style="font-size:2rem">🎧</div><div style="font-weight:900">錄好了！</div><div class="heard"></div>'; r.children[2].textContent = scoredPossible?(note||"這次沒有辨識到聲音")+"。聽聽看自己的錄音，再試一次。":(S.mode==="rec"?"目前是「只錄音」模式，請聽聽看自己和老師唸得像不像。":"這台裝置無法自動評分，請聽聽看自己和老師唸得像不像。"); announce("goodjob",200); }
   else { r.innerHTML='<div style="font-weight:900">沒有收到聲音 😮</div><div class="heard">請靠近麥克風，按一下再唸一次。</div>'; }
   mic.className="mic"; mic.textContent="🎙️"; $("micTxt"+n).textContent="按一下可以再錄一次"; $("micBar"+n).style.width="0%";
   $("btnMine"+n).disabled=!blob; $("btnRetry"+n).disabled=false; $("btnNext"+n).disabled=!((kind==="word")?P.sayTried:P.sentTried);
@@ -476,10 +515,10 @@ $("btnRetry2").onclick=()=>doCapture(2); $("btnRetry3").onclick=()=>doCapture(3)
 $("btnMine2").onclick=()=>playBlob(P.lastBlob2||P.sayBlob); $("btnMine3").onclick=()=>playBlob(P.lastBlob3||P.sentBlob);
 $("btnSkip2").onclick=()=>{ P.sayTried=true; goStep3(); }; $("btnSkip3").onclick=()=>{ P.sentTried=true; finishWord(); };
 $("btnNext2").onclick=()=>goStep3(); $("btnNext3").onclick=()=>finishWord();
-function finishWord(){ const w=WORDS[P.w]; const entry={t:Date.now(),w:P.w,ok:P.listenTries===1,tries:P.listenTries,say:P.say,sent:P.sent}; S.log.push(entry); if(S.log.length>2000) S.log=S.log.slice(-2000); const b=bestOf(P.w); b.listenN++; if(entry.ok) b.listenOk++; if(P.say!=null&&(b.say==null||P.say>b.say)) b.say=P.say; if(P.sent!=null&&(b.sent==null||P.sent>b.sent)) b.sent=P.sent; b.last=entry.t; S.best[P.w]=b; save(); P.results.push(entry);
+function finishWord(){ const w=WORDS[P.w]; const entry={t:Date.now(),w:P.w,ok:P.listenTries===1,tries:P.listenTries,say:P.say,sent:P.sent,att:P.attempts.map(a=>({k:a.k,s:a.s,tr:a.tr,t:a.t,words:a.words,note:a.note}))}; S.log.push(entry); if(S.log.length>2000) S.log=S.log.slice(-2000); const b=bestOf(P.w); b.listenN++; if(entry.ok) b.listenOk++; if(P.say!=null&&(b.say==null||P.say>b.say)) b.say=P.say; if(P.sent!=null&&(b.sent==null||P.sent>b.sent)) b.sent=P.sent; b.last=entry.t; P.attempts.forEach(a=>{ if(a.s==null) return; const key=a.k==='word'?'sayAll':'sentAll'; b[key]=b[key]||{n:0,sum:0}; b[key].n++; b[key].sum+=a.s; }); S.best[P.w]=b; save(); P.results.push(entry);
   ["step1","step2","step3"].forEach(id=>$(id).classList.add("hidden")); setStepper(4); $("stepDone").classList.remove("hidden"); $("doneEn").textContent=w.en; $("doneZh").textContent=w.zh; $("doneListen").textContent=entry.ok?"✓":"✓ ("+entry.tries+"次)"; $("doneSay").textContent=starStr(P.say); $("doneSent").textContent=starStr(P.sent); $("doneMsg").textContent=PRAISE[Math.floor(Math.random()*PRAISE.length)]+(P.idx+1<P.session.length?" 還有 "+(P.session.length-P.idx-1)+" 個字。":""); $("btnNextWord").textContent = P.idx+1<P.session.length?"下一個字 →":"看今天的成績 →"; SFX.done(); }
 $("btnNextWord").onclick=()=>{ P.idx++; if(P.idx<P.session.length) startWord(); else showSummary(); };
-function showSummary(){ show("scr-summary"); mountExportCard("sumExportSlot"); const n=doneTodaySet().size; $("sumTitle").textContent = P.results.length===1?"練完一個字了！":"這一組練完了，真棒！"; const list=$("sumList"); list.innerHTML=""; P.results.forEach(e=>{ const w=WORDS[e.w]; const d=document.createElement("div"); d.className="wrow"; d.innerHTML='<span class="ico"></span><div><div class="en"></div><div class="zh"></div></div><div class="sm"></div>'; d.children[0].textContent=w.ico; d.children[1].children[0].textContent=w.en; d.children[1].children[1].textContent=w.zh; d.children[2].innerHTML='<div></div><div></div>'; d.children[2].children[0].textContent="發音 "+starStr(e.say); d.children[2].children[1].textContent="句子 "+starStr(e.sent); list.appendChild(d); }); $("sumMsg").textContent="今天總共練了 "+n+" / 20 個字"+(streakDays()>1?"，連續 "+streakDays()+" 天練習！":"。"); confetti(60); announce("excellent",300); }
+function showSummary(){ show("scr-summary"); mountExportCard("sumExportSlot"); const n=doneTodaySet().size; $("sumTitle").textContent = P.results.length===1?"練完一個字了！":"這一組練完了，真棒！"; const list=$("sumList"); list.innerHTML=""; P.results.forEach(e=>{ const w=WORDS[e.w]; const d=document.createElement("div"); d.className="wrow"; d.innerHTML='<span class="ico"></span><div><div class="en"></div><div class="zh"></div></div><div class="sm"></div>'; d.children[0].textContent=w.ico; d.children[1].children[0].textContent=w.en; d.children[1].children[1].textContent=w.zh; d.children[2].innerHTML='<div></div><div></div>'; d.children[2].children[0].textContent="發音 "+starStr(e.say)+(e.say!=null?" "+e.say:""); d.children[2].children[1].textContent="句子 "+starStr(e.sent)+(e.sent!=null?" "+e.sent:""); list.appendChild(d); }); $("sumMsg").textContent="今天總共練了 "+n+" / 20 個字"+(streakDays()>1?"，連續 "+streakDays()+" 天練習！":"。"); confetti(60); announce("excellent",300); }
 $("btnAnother").onclick=()=>startSession(null); $("btnSumHome").onclick=()=>goHome();
 $("btnQuit").onclick=()=>{ if(Mic.capturing&&Mic.stopFn) Mic.stopFn(); goHome(); };
 
@@ -489,9 +528,15 @@ $("btnListBack").onclick=()=>goHome();
 
 /* ===================== PARENT LOG ===================== */
 async function openLog(){ show("scr-log"); mountExportCard("logExportSlot"); $("logName").textContent=(S.name?S.name+" 的":"小朋友的")+"紀錄"; $("logDate").textContent=fmtTime(Date.now()); const t=todayKey(); const today=S.log.filter(e=>dayKey(e.t)===t); const says=today.map(e=>e.say).filter(x=>x!=null); $("lgToday").textContent=new Set(today.map(e=>e.w)).size; $("lgAvg").textContent=says.length?Math.round(says.reduce((a,b)=>a+b,0)/says.length)+" 分":"—"; $("lgTotal").textContent=S.log.length; renderDays($("days2"));
-  const tb=$("logTable"); tb.innerHTML=""; WORDS.forEach((w,i)=>{ const b=bestOf(i); const tr=document.createElement("tr"); tr.innerHTML='<td class="en"></td><td></td><td><span class="st"></span></td><td><span class="st"></span></td><td></td>'; tr.children[0].textContent=w.en+" "; const zh=document.createElement("small"); zh.textContent=w.zh; zh.style.color="var(--ink2)"; tr.children[0].appendChild(zh); tr.children[1].textContent=b.listenN?b.listenOk+"/"+b.listenN:"—"; tr.children[2].firstChild.textContent=b.say!=null?starStr(b.say)+" "+b.say:"—"; tr.children[3].firstChild.textContent=b.sent!=null?starStr(b.sent)+" "+b.sent:"—"; tr.children[4].textContent=b.last?fmtDate(b.last):"—"; tb.appendChild(tr); });
-  const recs=await listRec(); const list=$("recList"); list.innerHTML=""; $("recCount").textContent=recs.length?"共 "+recs.length+" 筆":""; if(!recs.length){ list.innerHTML='<div class="muted">還沒有錄音。</div>'; } recs.slice(0,40).forEach(r=>{ const w=WORDS[r.w]||{en:"?"}; const d=document.createElement("div"); d.className="recrow"; d.innerHTML='<span class="t"></span><span class="w"></span><span class="sc"></span><button class="btn small">▶</button>'; d.children[0].textContent=fmtTime(r.t); d.children[1].textContent=(r.kind==="sent"?w.sen:w.en); d.children[2].textContent=r.score!=null?r.score+" 分":""; d.children[3].onclick=()=>playBlob(r.blob); list.appendChild(d); });
+  const tb=$("logTable"); tb.innerHTML=""; WORDS.forEach((w,i)=>{ const b=bestOf(i); const tr=document.createElement("tr"); tr.innerHTML='<td class="en"></td><td></td><td><span class="st"></span></td><td><span class="st"></span></td><td></td>'; tr.children[0].textContent=w.en+" "; const zh=document.createElement("small"); zh.textContent=w.zh; zh.style.color="var(--ink2)"; tr.children[0].appendChild(zh); tr.children[1].textContent=b.listenN?b.listenOk+"/"+b.listenN:"—"; const fillB=(td,best,all)=>{ if(best==null){ td.textContent="—"; return; } td.innerHTML='<span class="st"></span><br><small></small>'; td.children[0].textContent=starStr(best)+" "+best; td.children[2].textContent=all&&all.n?"平均 "+Math.round(all.sum/all.n)+" · "+all.n+" 次":""; td.children[2].style.color="var(--ink2)"; }; fillB(tr.children[2],b.say,b.sayAll); fillB(tr.children[3],b.sent,b.sentAll); tr.children[4].textContent=b.last?fmtDate(b.last):"—"; tb.appendChild(tr); });
+  await renderAttempts();
   $("clearConfirm").classList.add("hidden"); }
+let attFilter="today";
+[...$("attFilter").children].forEach(b=>b.onclick=()=>{ attFilter=b.dataset.f; [...$("attFilter").children].forEach(x=>x.classList.toggle("on",x===b)); renderAttempts(); });
+function attemptsFromLog(){ const out=[]; S.log.forEach(e=>(e.att||[]).forEach(a=>out.push({w:e.w,kind:a.k,t:a.t||e.t,score:a.s,heard:a.tr||"",words:a.words||null,note:a.note||"",blob:null,fromLog:true}))); return out; }
+async function renderAttempts(){ const list=$("recList"); list.innerHTML=""; let recs=await listRec(); if(!recs.length) recs=attemptsFromLog(); else { const logA=attemptsFromLog().filter(a=>!recs.some(r=>Math.abs(r.t-a.t)<3000&&r.w===a.w&&r.kind===a.kind)); recs=recs.concat(logA); } recs.sort((a,b)=>b.t-a.t); const t=todayKey(); if(attFilter==="today") recs=recs.filter(r=>dayKey(r.t)===t); $("recCount").textContent=recs.length?"共 "+recs.length+" 次":""; if(!recs.length){ list.innerHTML='<div class="muted">'+(attFilter==="today"?"今天還沒有錄音。":"還沒有錄音。")+'</div>'; return; }
+  let lastDay=""; recs.slice(0,200).forEach(r=>{ const dk=dayKey(r.t); if(dk!==lastDay){ lastDay=dk; const h=document.createElement("div"); h.className="dayhead"; const dayRecs=recs.filter(x=>dayKey(x.t)===dk); const sc=dayRecs.map(x=>x.score).filter(x=>x!=null); h.innerHTML="<span></span><small></small>"; h.children[0].textContent=fmtDate(r.t)+(dk===t?"（今天）":""); h.children[1].textContent=dayRecs.length+" 次"+(sc.length?" · 平均 "+Math.round(sc.reduce((a,b)=>a+b,0)/sc.length)+" 分":""); list.appendChild(h); }
+    const w=WORDS[r.w]||{en:"?",sen:"?"}; const d=document.createElement("div"); d.className="att"; d.innerHTML='<div><div class="top"><span class="tm"></span><span class="en"></span><span class="kind"></span></div><div class="heard"></div></div><div class="sc"></div>'; d.querySelector(".tm").textContent=fmtTime(r.t).split(" ")[1]; d.querySelector(".en").textContent=r.kind==="sent"?w.sen:w.en; d.querySelector(".kind").textContent=r.kind==="sent"?"句子":"單字"; const hd=d.querySelector(".heard"); if(r.heard){ hd.innerHTML='聽到：<b></b>'; hd.querySelector("b").textContent=r.heard; } else hd.textContent=r.note||(r.score==null?"未評分（只錄音）":""); const sc=d.querySelector(".sc"); if(r.score!=null){ sc.innerHTML='<span></span><small></small>'; sc.children[0].textContent=r.score; sc.children[1].textContent=starStr(r.score)+" "+gradeLabel(r.score); } else sc.textContent="—"; if(r.kind==="sent"&&r.words&&r.words.length) d.appendChild(renderChips(r.words)); if(r.blob){ const b=document.createElement("button"); b.className="btn small play"; b.textContent="▶ 聽錄音"; b.onclick=()=>playBlob(r.blob); d.appendChild(b); } list.appendChild(d); }); }
 $("btnLogBack").onclick=()=>goHome();
 $("btnClearAll").onclick=()=>$("clearConfirm").classList.remove("hidden"); $("btnClearNo").onclick=()=>$("clearConfirm").classList.add("hidden");
 $("btnClearYes").onclick=async()=>{ S.log=[]; S.best={}; save(); await clearRec(); toast("已清除所有紀錄"); openLog(); };
@@ -528,7 +573,7 @@ function mountExportCard(slotId){ const card=$("exportCard"); card.hidden=false;
 async function exportMp3(){ const status=t=>{ $("expStatus").textContent=t; }; const bar=p=>{ $("expBar").classList.remove("hidden"); $("expBar").firstElementChild.style.width=Math.round(Math.max(0,Math.min(1,p))*100)+"%"; };
   if(!window.lamejs){ status("MP3 編碼器沒有載入，請重新整理頁面再試。"); return; }
   const btn=$("btnExport"); btn.disabled=true; $("expResult").classList.add("hidden"); lastExport=null; ensureCtx();
-  try{ const all=await listRec(); const t=todayKey(); let recs=expScope==="today"?all.filter(r=>dayKey(r.t)===t):all; recs=recs.slice().sort((a,b)=>a.t-b.t);
+  try{ const all=await listRec(); const t=todayKey(); let recs=(expScope==="today"?all.filter(r=>dayKey(r.t)===t):all).filter(r=>r.blob); recs=recs.slice().sort((a,b)=>a.t-b.t);
     if(!recs.length){ status(expScope==="today"?"今天還沒有錄音，先去練習吧！":"還沒有任何錄音。"); btn.disabled=false; return; }
     status("讀取 "+recs.length+" 段錄音…"); bar(0.03);
     const mix=await buildMix(recs,bar); status("製作 MP3 中…"); const blob=await encodeMp3(mix.pcm,mix.sr,p=>bar(0.35+0.65*p));
@@ -545,7 +590,7 @@ $("btnHomeExport").onclick=async()=>{ await openLog(); $("exportCard").scrollInt
 
 /* ===================== INIT ===================== */
 loadVoices(); goHome();
-window.__dbg={S,P,WORDS,Mic,scoreWord,scoreSentence,norm,startSession,listRec,doneTodaySet,bestOf,stars};
+window.__dbg={S,P,WORDS,Mic,scoreWord,scoreSentence,scoreWordV2,scoreSentenceV2,wsim,norm,startSession,listRec,doneTodaySet,bestOf,stars};
 </script>
 </body>
 </html>
